@@ -14,7 +14,7 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      font-size: 1.25em; /* slightly bigger */
+      font-size: 1.25em;
     }
     button {
       background: #6b8e23; /* olive green */
@@ -29,12 +29,13 @@
       font-family: "Garamond", serif;
     }
     button:hover {
-      background: #556b2f; /* darker olive */
+      background: #556b2f;
     }
     #thoughtBox {
       width: 80%;
       max-width: 600px;
-      height: 120px;
+      min-height: 120px;
+      height: auto;
       font-size: 1.3em;
       padding: 15px;
       background: #f0f9f5;
@@ -43,6 +44,8 @@
       color: #333;
       resize: none;
       font-family: "Garamond", serif;
+      overflow: hidden;
+      transition: height 0.3s ease;
     }
   </style>
 </head>
@@ -68,12 +71,18 @@
         if (thoughts.length > 0) {
           showThought();
         }
+      })
+      .catch(error => {
+        console.error("Failed to load thoughts:", error);
       });
 
     function showThought() {
       if (thoughts.length === 0) return;
       const i = Math.floor(Math.random() * thoughts.length);
-      document.getElementById('thoughtBox').value = thoughts[i];
+      const box = document.getElementById('thoughtBox');
+      box.style.height = 'auto'; // Reset height
+      box.value = thoughts[i];   // Set new content
+      box.style.height = box.scrollHeight + 'px'; // Adjust height smoothly
     }
   </script>
 </body>
