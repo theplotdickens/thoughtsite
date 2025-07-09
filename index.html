@@ -110,7 +110,6 @@
     const recentDiv = document.getElementById('recentUpdates');
 
     let thoughts = [];
-    let index = 0;
     let isAnimating = false;
 
     function shuffle(array) {
@@ -130,8 +129,7 @@
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             let text = cols[1] || '';
-            // Fix for extra quotes including escaped ones
-            return text.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+            return text.trim().replace(/^"|"$/g, '');
           })
           .filter(t => t.length > 0);
 
@@ -139,7 +137,7 @@
         lines.slice(1).forEach(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
           const timestamp = cols[0];
-          const thought = cols[1]?.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
           if (!thought) return;
 
           const date = new Date(timestamp);
@@ -175,11 +173,10 @@
       if (isAnimating || thoughts.length === 0) return;
       isAnimating = true;
 
-      thoughtBox.value = thoughts[index];
+      const i = Math.floor(Math.random() * thoughts.length);
+      thoughtBox.value = thoughts[i];
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
-
-      index = (index + 1) % thoughts.length;
 
       setTimeout(() => {
         isAnimating = false;
