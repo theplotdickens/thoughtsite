@@ -130,7 +130,8 @@
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             let text = cols[1] || '';
-            return text.trim().replace(/^"|"$/g, '');
+            // Fix for extra quotes including escaped ones
+            return text.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
           })
           .filter(t => t.length > 0);
 
@@ -138,7 +139,7 @@
         lines.slice(1).forEach(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
           const timestamp = cols[0];
-          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
+          const thought = cols[1]?.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
           if (!thought) return;
 
           const date = new Date(timestamp);
