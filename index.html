@@ -52,7 +52,7 @@
       height: auto;
       font-size: 2.2em;
       padding: 24px;
-      background: rgba(255, 255, 255, 0.95); /* Slight transparency */
+      background: rgba(255, 255, 255, 0.95);
       color: #000;
       border: 1px solid #333;
       border-radius: 10px;
@@ -99,7 +99,11 @@
         shuffle(thoughts);
 
         if (thoughts.length > 0) {
-          showThought();
+          // Show first thought without advancing
+          thoughtBox.value = thoughts[0];
+          thoughtBox.style.height = 'auto';
+          thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+
           button.disabled = false;
           button.textContent = `Give me a thought (1 of ${thoughts.length})`;
           button.addEventListener('click', showThought);
@@ -116,24 +120,23 @@
       if (isAnimating || thoughts.length === 0) return;
       isAnimating = true;
 
+      index = (index + 1) % thoughts.length;
       thoughtBox.value = thoughts[index];
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
-
-      index = (index + 1) % thoughts.length;
 
       setTimeout(() => {
         isAnimating = false;
       }, 300);
     }
 
-    // RGB fade for the button
+    // RGB fade
     let hue = 0;
     function updateButtonColor() {
       hue = (hue + 3) % 360;
       button.style.background = `hsl(${hue}, 100%, 50%)`;
     }
-    setInterval(updateButtonColor, 40); // 4-second RGB cycle
+    setInterval(updateButtonColor, 40); // 4-second cycle
 
     loadThoughts();
   </script>
