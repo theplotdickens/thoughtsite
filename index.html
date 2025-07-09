@@ -11,10 +11,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
       font-size: 1.25em;
+      height: 100vh;
+      position: relative;
+      overflow-y: auto;
+      padding-top: 20px;
+      padding-bottom: 100px; /* space for textarea */
     }
     button {
       background: #6b8e23; /* olive green */
@@ -24,9 +27,13 @@
       font-size: 1.3em;
       border-radius: 8px;
       cursor: pointer;
-      margin-bottom: 20px;
       transition: background 0.2s;
       font-family: "Garamond", serif;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
     }
     button:hover {
       background: #556b2f;
@@ -46,6 +53,8 @@
       font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
+      margin: 20px auto 60px; /* margin top & bottom for spacing */
+      display: block;
     }
   </style>
 </head>
@@ -80,9 +89,9 @@
       if (thoughts.length === 0) return;
       const i = Math.floor(Math.random() * thoughts.length);
       const box = document.getElementById('thoughtBox');
-      box.style.height = 'auto'; // Reset height
-      box.value = thoughts[i];   // Set new content
-      box.style.height = box.scrollHeight + 'px'; // Adjust height smoothly
+      box.value = thoughts[i];
+      box.style.height = 'auto';
+      box.style.height = box.scrollHeight + 'px';
     }
   </script>
 </body>
