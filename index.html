@@ -1,46 +1,48 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Brian's Thoughts</title>
   <style>
     body {
-      background: #111;
-      color: #eee;
-      font-family: sans-serif;
+      background: #d6eadf; /* soft green */
+      color: #333;
+      font-family: "Garamond", serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
+      font-size: 1.25em; /* slightly bigger */
     }
     button {
-      background: #444;
+      background: #6b8e23; /* olive green */
       color: #fff;
       border: none;
-      padding: 10px 20px;
-      font-size: 1.2em;
+      padding: 12px 24px;
+      font-size: 1.3em;
       border-radius: 8px;
       cursor: pointer;
       margin-bottom: 20px;
       transition: background 0.2s;
+      font-family: "Garamond", serif;
     }
     button:hover {
-      background: #666;
+      background: #556b2f; /* darker olive */
     }
     #thoughtBox {
       width: 80%;
       max-width: 600px;
       height: 120px;
-      font-size: 1.2em;
+      font-size: 1.3em;
       padding: 15px;
-      background: #222;
-      border: 1px solid #555;
+      background: #f0f9f5;
+      border: 1px solid #a0c0a0;
       border-radius: 10px;
-      color: #ccc;
+      color: #333;
       resize: none;
+      font-family: "Garamond", serif;
     }
   </style>
 </head>
@@ -48,27 +50,6 @@
   <button onclick="showThought()">Give me a thought</button>
   <textarea id="thoughtBox" readonly></textarea>
   <script>
-  let thoughts = [];
+    let thoughts = [];
 
-  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
-    .then(response => response.text())
-    .then(data => {
-      const lines = data.split('\n');
-      thoughts = lines.slice(1)
-        .map(row => {
-          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // splits on commas not inside quotes
-          let text = cols[1] || '';
-          text = text.trim().replace(/^"|"$/g, ''); // remove surrounding quotes
-          return text;
-        })
-        .filter(t => t.length > 0);
-    });
-
-  function showThought() {
-    if (thoughts.length === 0) return;
-    const i = Math.floor(Math.random() * thoughts.length);
-    document.getElementById('thoughtBox').value = thoughts[i];
-  }
-  </script>
-</body>
-</html>
+    fetch('https://docs.google.com/spreadsheets/d/e/2PACX
