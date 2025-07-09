@@ -101,7 +101,7 @@
         if (thoughts.length > 0) {
           showThought();
           button.disabled = false;
-          button.textContent = "Give me a thought";
+          button.textContent = `Give me a thought (1 of ${thoughts.length})`;
           button.addEventListener('click', showThought);
         } else {
           button.textContent = "No thoughts found";
