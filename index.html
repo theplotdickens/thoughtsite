@@ -55,7 +55,7 @@
     fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
       .then(response => response.text())
       .then(data => {
-        const lines = data.trim().split(/\\r?\\n/);
+        const lines = data.trim().split(/\r?\n/);
         thoughts = lines.slice(1)
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
