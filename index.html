@@ -5,7 +5,7 @@
   <title>Brian's Thoughts</title>
   <style>
     body {
-      background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/20250607_011256.jpg') no-repeat center center fixed;
+      background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
       background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
@@ -14,32 +14,36 @@
       overflow-y: auto;
       position: relative;
     }
+
     button {
-      background: #000; /* black */
-      color: #fff;       /* white text */
+      color: #fff;
       border: none;
       padding: 12px 24px;
       font-size: 1.3em;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
       font-family: "Garamond", serif;
       position: fixed;
-      top: 50%;
+      top: 35%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
+      transition: background 0.5s;
+      background: rgb(255, 0, 0);
     }
+
     button:disabled {
       background: #555;
       cursor: not-allowed;
     }
+
     button:hover:enabled {
-      background: #222;
+      filter: brightness(0.85);
     }
+
     #thoughtBox {
       position: fixed;
-      top: calc(50% + 60px);
+      top: calc(35% + 60px);
       left: 50%;
       transform: translateX(-50%);
       width: 80%;
@@ -48,8 +52,8 @@
       height: auto;
       font-size: 1.3em;
       padding: 15px;
-      background: #fff;       /* white background */
-      color: #000;            /* black text */
+      background: #fff;
+      color: #000;
       border: 1px solid #333;
       border-radius: 10px;
       resize: none;
@@ -122,6 +126,14 @@
         isAnimating = false;
       }, 300);
     }
+
+    // RGB fade for the button (about 4 seconds full cycle)
+    let hue = 0;
+    function updateButtonColor() {
+      hue = (hue + 3) % 360;
+      button.style.background = `hsl(${hue}, 100%, 50%)`;
+    }
+    setInterval(updateButtonColor, 30);
 
     loadThoughts();
   </script>
