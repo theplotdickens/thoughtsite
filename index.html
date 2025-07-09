@@ -48,18 +48,22 @@
   <button onclick="showThought()">Give me a thought</button>
   <textarea id="thoughtBox" readonly></textarea>
   <script>
-    let thoughts = [];
-    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
-      .then(response => response.text())
-      .then(data => {
-        const lines = data.split('\n');
-        thoughts = lines.slice(1.map(row => row.match(/(?:\"([^\"]*)\")|([^,]+)/g)?.[1]).filter(t => t.length > 0);
-      });
-    function showThought() {
-      if (thoughts.length === 0) return;
-      const i = Math.floor(Math.random() * thoughts.length);
-      document.getElementById('thoughtBox').value = thoughts[i];
-    }
+  let thoughts = [];
+
+  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
+    .then(response => response.text())
+    .then(data => {
+      const lines = data.split('\n');
+      thoughts = lines.slice(1)
+        .map(row => row.match(/(?:\"([^\"]*)\")|([^,]+)/g)?.[1])
+        .filter(t => t && t.trim().length > 0);
+    });
+
+  function showThought() {
+    if (thoughts.length === 0) return;
+    const i = Math.floor(Math.random() * thoughts.length);
+    document.getElementById('thoughtBox').value = thoughts[i];
+  }
   </script>
 </body>
 </html>
