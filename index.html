@@ -69,8 +69,6 @@
       font-size: 1em;
       font-style: italic;
       font-weight: bold;
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
     }
 
     summary {
@@ -79,6 +77,11 @@
       outline: none;
       padding: 10px;
       font-weight: bold;
+      list-style: none; /* remove default arrow */
+    }
+
+    summary::-webkit-details-marker {
+      display: none; /* remove arrow in WebKit browsers */
     }
 
     summary::before {
@@ -103,7 +106,6 @@
 
     #recentUpdates {
       padding-top: 10px;
-      clear: both;
     }
   </style>
 </head>
@@ -113,7 +115,7 @@
 
   <div id="recentContainer">
     <details open>
-      <summary><em>Recent Memory Additions</em></summary>
+      <summary><strong><em>Recent Memory Additions</em></strong></summary>
       <div id="recentUpdates"></div>
     </details>
   </div>
