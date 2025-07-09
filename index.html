@@ -8,16 +8,11 @@
       background: #d6eadf; /* soft green */
       color: #333;
       font-family: "Garamond", serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       margin: 0;
       font-size: 1.25em;
       height: 100vh;
-      position: relative;
       overflow-y: auto;
-      padding-top: 20px;
-      padding-bottom: 100px; /* space for textarea */
+      position: relative;
     }
     button {
       background: #6b8e23; /* olive green */
@@ -39,6 +34,10 @@
       background: #556b2f;
     }
     #thoughtBox {
+      position: fixed;
+      top: calc(50% + 60px); /* 60px below the center button */
+      left: 50%;
+      transform: translateX(-50%);
       width: 80%;
       max-width: 600px;
       min-height: 120px;
@@ -53,8 +52,7 @@
       font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
-      margin: 20px auto 60px; /* margin top & bottom for spacing */
-      display: block;
+      z-index: 5;
     }
   </style>
 </head>
