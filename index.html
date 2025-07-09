@@ -78,14 +78,13 @@
       padding: 10px;
     }
 
-    details[open] summary::after {
-      content: "▲";
+    summary::after {
+      content: "+";
       float: right;
     }
 
-    summary::after {
-      content: "▼";
-      float: right;
+    details[open] summary::after {
+      content: "+";
     }
 
     #recentUpdates {
@@ -110,6 +109,7 @@
     const recentDiv = document.getElementById('recentUpdates');
 
     let thoughts = [];
+    let index = 0;
     let isAnimating = false;
 
     function shuffle(array) {
@@ -173,10 +173,11 @@
       if (isAnimating || thoughts.length === 0) return;
       isAnimating = true;
 
-      const i = Math.floor(Math.random() * thoughts.length);
-      thoughtBox.value = thoughts[i];
+      thoughtBox.value = thoughts[index];
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+
+      index = (index + 1) % thoughts.length;
 
       setTimeout(() => {
         isAnimating = false;
