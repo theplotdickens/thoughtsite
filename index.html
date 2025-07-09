@@ -49,7 +49,7 @@
   <textarea id="thoughtBox" readonly></textarea>
   <script>
     let thoughts = [];
-    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRuVCKgvByX6u_I7PMScdJhC-UGboewkYALfs9Flo5C93Bkug4oL5cEZlyoO3s4CnKdK1nFw9-9o6G1/pub?output=csv')
+    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
       .then(response => response.text())
       .then(data => {
         const lines = data.split('\n');
