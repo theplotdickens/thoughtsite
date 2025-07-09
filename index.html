@@ -106,7 +106,7 @@
           thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
 
           button.disabled = false;
-          button.innerHTML = `Give me a thought<br><small>(there are $ {thoughts.length})</small>`;
+          button.innerHTML = `Give me a thought<br><small>(there are ${thoughts.length})</small>`;
           button.addEventListener('click', showThought);
         } else {
           button.textContent = "No thoughts found";
