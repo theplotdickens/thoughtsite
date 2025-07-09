@@ -5,8 +5,8 @@
   <title>Brian's Thoughts</title>
   <style>
     body {
-      background: #d6eadf; /* soft green */
-      color: #333;
+      background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/20250607_011256.jpg') no-repeat center center fixed;
+      background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
       font-size: 1.25em;
@@ -15,8 +15,8 @@
       position: relative;
     }
     button {
-      background: #6b8e23; /* olive green */
-      color: #fff;
+      background: #000; /* black */
+      color: #fff;       /* white text */
       border: none;
       padding: 12px 24px;
       font-size: 1.3em;
@@ -31,15 +31,15 @@
       z-index: 10;
     }
     button:disabled {
-      background: #999;
+      background: #555;
       cursor: not-allowed;
     }
     button:hover:enabled {
-      background: #556b2f;
+      background: #222;
     }
     #thoughtBox {
       position: fixed;
-      top: calc(50% + 60px); /* 60px below the center button */
+      top: calc(50% + 60px);
       left: 50%;
       transform: translateX(-50%);
       width: 80%;
@@ -48,10 +48,10 @@
       height: auto;
       font-size: 1.3em;
       padding: 15px;
-      background: #f0f9f5;
-      border: 1px solid #a0c0a0;
+      background: #fff;       /* white background */
+      color: #000;            /* black text */
+      border: 1px solid #333;
       border-radius: 10px;
-      color: #333;
       resize: none;
       font-family: "Garamond", serif;
       overflow: hidden;
@@ -63,14 +63,14 @@
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
   <textarea id="thoughtBox" readonly></textarea>
+
   <script>
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
 
     let thoughts = [];
     let index = 0;
-
-    // Button disabled and "Loading..." from start (in HTML too)
+    let isAnimating = false;
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -79,9 +79,10 @@
       }
     }
 
-    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
-      .then(response => response.text())
-      .then(data => {
+    async function loadThoughts() {
+      try {
+        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
+        const data = await response.text();
         const lines = data.trim().split(/\r?\n/);
         thoughts = lines.slice(1)
           .map(row => {
@@ -97,23 +98,32 @@
           showThought();
           button.disabled = false;
           button.textContent = "Give me a thought";
-          button.onclick = showThought;
+          button.addEventListener('click', showThought);
         } else {
           button.textContent = "No thoughts found";
         }
-      })
-      .catch(error => {
+      } catch (error) {
         console.error("Failed to load thoughts:", error);
         button.textContent = "Error loading thoughts";
-      });
+      }
+    }
 
     function showThought() {
-      if (thoughts.length === 0) return;
+      if (isAnimating || thoughts.length === 0) return;
+      isAnimating = true;
+
       thoughtBox.value = thoughts[index];
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+
       index = (index + 1) % thoughts.length;
+
+      setTimeout(() => {
+        isAnimating = false;
+      }, 300);
     }
+
+    loadThoughts();
   </script>
 </body>
 </html>
