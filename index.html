@@ -43,15 +43,15 @@
 
     #thoughtBox {
       position: fixed;
-      top: calc(35% + 60px);
+      top: calc(35% + 70px);
       left: 50%;
       transform: translateX(-50%);
       width: 80%;
-      max-width: 600px;
+      max-width: 700px;
       min-height: 120px;
       height: auto;
-      font-size: 1.3em;
-      padding: 15px;
+      font-size: 1.8em;
+      padding: 20px;
       background: #fff;
       color: #000;
       border: 1px solid #333;
@@ -127,13 +127,13 @@
       }, 300);
     }
 
-    // RGB fade for the button (about 4 seconds full cycle)
+    // RGB fade for the button
     let hue = 0;
     function updateButtonColor() {
       hue = (hue + 3) % 360;
       button.style.background = `hsl(${hue}, 100%, 50%)`;
     }
-    setInterval(updateButtonColor, 50);
+    setInterval(updateButtonColor, 40); // 4-second cycle
 
     loadThoughts();
   </script>
