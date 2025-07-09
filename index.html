@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brian's Thoughts</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #666;
+    }
+    #thoughtBox {
+      width: 80%;
+      max-width: 600px;
+      height: 120px;
+      font-size: 1.2em;
+      padding: 15px;
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 10px;
+      color: #ccc;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="showThought()">Give me a thought</button>
+  <textarea id="thoughtBox" readonly></textarea>
+  <script>
+    let thoughts = [];
+    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRuVCKgvByX6u_I7PMScdJhC-UGboewkYALfs9Flo5C93Bkug4oL5cEZlyoO3s4CnKdK1nFw9-9o6G1/pub?output=csv')
+      .then(response => response.text())
+      .then(data => {
+        const lines = data.split('\n');
+        thoughts = lines.slice(1).map(row => row.split(',')[0].trim()).filter(t => t.length > 0);
+      });
+    function showThought() {
+      if (thoughts.length === 0) return;
+      const i = Math.floor(Math.random() * thoughts.length);
+      document.getElementById('thoughtBox').value = thoughts[i];
+    }
+  </script>
+</body>
+</html>
