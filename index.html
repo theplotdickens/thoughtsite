@@ -69,6 +69,8 @@
       font-size: 1em;
       font-style: italic;
       font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
     }
 
     summary {
@@ -76,19 +78,32 @@
       cursor: pointer;
       outline: none;
       padding: 10px;
+      font-weight: bold;
+    }
+
+    summary::before {
+      content: "+ ";
+      float: left;
+      margin-right: 8px;
     }
 
     summary::after {
-      content: "+";
+      content: " +";
       float: right;
+      margin-left: 8px;
+    }
+
+    details[open] summary::before {
+      content: "+ ";
     }
 
     details[open] summary::after {
-      content: "+";
+      content: " +";
     }
 
     #recentUpdates {
       padding-top: 10px;
+      clear: both;
     }
   </style>
 </head>
@@ -98,7 +113,7 @@
 
   <div id="recentContainer">
     <details open>
-      <summary><strong><em>Recent Memory Additions</em></strong></summary>
+      <summary><em>Recent Memory Additions</em></summary>
       <div id="recentUpdates"></div>
     </details>
   </div>
