@@ -55,7 +55,11 @@
     .then(data => {
       const lines = data.split('\n');
       thoughts = lines.slice(1)
-        .map(row => row.match(/(?:\"([^\"]*)\")|([^,]+)/g)?.[1])
+        .map(row => {
+  const match = row.match(/(?:\"([^\"]*)\")|([^,]+)/g);
+  const text = match?.[1] || '';
+  return text.replace(/^"|"$/g, '').trim();
+})
         .filter(t => t && t.trim().length > 0);
     });
 
