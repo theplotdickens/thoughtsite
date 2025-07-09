@@ -64,11 +64,13 @@
   <button id="thoughtBtn" disabled>Loading...</button>
   <textarea id="thoughtBox" readonly></textarea>
   <script>
+    const button = document.getElementById('thoughtBtn');
+    const thoughtBox = document.getElementById('thoughtBox');
+
     let thoughts = [];
     let index = 0;
 
-    const button = document.getElementById('thoughtBtn');
-    const thoughtBox = document.getElementById('thoughtBox');
+    // Button disabled and "Loading..." from start (in HTML too)
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -85,16 +87,17 @@
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             let text = cols[1] || '';
-            text = text.trim().replace(/^"|"$/g, '');
-            return text;
+            return text.trim().replace(/^"|"$/g, '');
           })
           .filter(t => t.length > 0);
 
         shuffle(thoughts);
+
         if (thoughts.length > 0) {
           showThought();
           button.disabled = false;
           button.textContent = "Give me a thought";
+          button.onclick = showThought;
         } else {
           button.textContent = "No thoughts found";
         }
@@ -103,8 +106,6 @@
         console.error("Failed to load thoughts:", error);
         button.textContent = "Error loading thoughts";
       });
-
-    button.onclick = showThought;
 
     function showThought() {
       if (thoughts.length === 0) return;
