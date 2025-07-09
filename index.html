@@ -56,11 +56,12 @@
       const lines = data.split('\n');
       thoughts = lines.slice(1)
         .map(row => {
-  const match = row.match(/(?:\"([^\"]*)\")|([^,]+)/g);
-  const text = match?.[1] || '';
-  return text.replace(/^"|"$/g, '').trim();
-})
-        .filter(t => t && t.trim().length > 0);
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // splits on commas not inside quotes
+          let text = cols[1] || '';
+          text = text.trim().replace(/^"|"$/g, ''); // remove surrounding quotes
+          return text;
+        })
+        .filter(t => t.length > 0);
     });
 
   function showThought() {
