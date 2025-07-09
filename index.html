@@ -13,6 +13,8 @@
       height: 100vh;
       overflow-y: auto;
       position: relative;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
     }
 
     button {
@@ -30,7 +32,6 @@
       z-index: 10;
       transition: background 0.5s;
       background: rgb(255, 0, 0);
-      text-align: center;
     }
 
     button:disabled {
@@ -63,15 +64,30 @@
       transition: height 0.3s ease;
       z-index: 5;
     }
+
+    #recentUpdates {
+      position: relative;
+      margin-top: 480px;
+      padding: 20px;
+      text-align: center;
+      font-size: 1em;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
   <textarea id="thoughtBox" readonly></textarea>
+  <div id="recentUpdates"></div>
 
   <script>
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
+    const recentDiv = document.getElementById('recentUpdates');
 
     let thoughts = [];
     let index = 0;
@@ -89,6 +105,8 @@
         const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
         const data = await response.text();
         const lines = data.trim().split(/\r?\n/);
+
+        // Build thoughts list
         thoughts = lines.slice(1)
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -97,16 +115,35 @@
           })
           .filter(t => t.length > 0);
 
+        // Group memory counts by date
+        const dateCounts = {};
+        lines.slice(1).forEach(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          const timestamp = cols[0];
+          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
+          if (!thought) return;
+
+          const date = new Date(timestamp);
+          if (isNaN(date)) return;
+
+          const key = date.toDateString();
+          if (!dateCounts[key]) dateCounts[key] = 0;
+          dateCounts[key]++;
+        });
+
+        // Show memory log
+        recentDiv.innerHTML = "<strong>Recent Memory Additions:</strong><br>" + 
+          Object.entries(dateCounts)
+            .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+            .map(([date, count]) => `${date} — ${count} ${count === 1 ? 'memory' : 'memories'}`)
+            .join('<br>');
+
         shuffle(thoughts);
 
         if (thoughts.length > 0) {
-          // show the first thought right away
-          thoughtBox.value = thoughts[0];
-          thoughtBox.style.height = 'auto';
-          thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
-
+          showThought();
           button.disabled = false;
-          button.innerHTML = `Give me a thought<br><small>(there are ${thoughts.length})</small>`;
+          button.textContent = `Give me a thought\n(${thoughts.length} total)`;
           button.addEventListener('click', showThought);
         } else {
           button.textContent = "No thoughts found";
@@ -138,7 +175,7 @@
       hue = (hue + 3) % 360;
       button.style.background = `hsl(${hue}, 100%, 50%)`;
     }
-    setInterval(updateButtonColor, 40); // 4-second RGB cycle
+    setInterval(updateButtonColor, 40);
 
     loadThoughts();
   </script>
