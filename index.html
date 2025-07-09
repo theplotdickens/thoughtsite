@@ -30,7 +30,11 @@
       transform: translate(-50%, -50%);
       z-index: 10;
     }
-    button:hover {
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    button:hover:enabled {
       background: #556b2f;
     }
     #thoughtBox {
@@ -57,10 +61,21 @@
   </style>
 </head>
 <body>
-  <button onclick="showThought()">Give me a thought</button>
+  <button id="thoughtBtn" disabled>Loading...</button>
   <textarea id="thoughtBox" readonly></textarea>
   <script>
     let thoughts = [];
+    let index = 0;
+
+    const button = document.getElementById('thoughtBtn');
+    const thoughtBox = document.getElementById('thoughtBox');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
 
     fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv')
       .then(response => response.text())
@@ -75,21 +90,28 @@
           })
           .filter(t => t.length > 0);
 
+        shuffle(thoughts);
         if (thoughts.length > 0) {
           showThought();
+          button.disabled = false;
+          button.textContent = "Give me a thought";
+        } else {
+          button.textContent = "No thoughts found";
         }
       })
       .catch(error => {
         console.error("Failed to load thoughts:", error);
+        button.textContent = "Error loading thoughts";
       });
+
+    button.onclick = showThought;
 
     function showThought() {
       if (thoughts.length === 0) return;
-      const i = Math.floor(Math.random() * thoughts.length);
-      const box = document.getElementById('thoughtBox');
-      box.value = thoughts[i];
-      box.style.height = 'auto';
-      box.style.height = box.scrollHeight + 'px';
+      thoughtBox.value = thoughts[index];
+      thoughtBox.style.height = 'auto';
+      thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+      index = (index + 1) % thoughts.length;
     }
   </script>
 </body>
