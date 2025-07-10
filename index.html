@@ -100,7 +100,7 @@
 
     let thoughts = [];
     let index = 0;
-    let ratedThoughts = {};
+    let ratedThoughts = {};  // <-- Make sure this is declared!
 
     const ratingURL = "https://script.google.com/macros/s/AKfycbyFGli5YL6erGBJ7KvxToZ3pt_MCDkRqc-sltHj1tHzZTvvrd7aoKsizTTPBVvUCFGo/exec";
 
@@ -176,6 +176,7 @@
         if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
+          ratingInfo.textContent = `You rated this: ${rating}/5`;
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -193,7 +194,6 @@
         star.className = 'star';
         starContainer.appendChild(star);
       }
-      ratingInfo.textContent = `You rated this: ${userRating}/5`;
     }
 
     loadThoughts();
