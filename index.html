@@ -100,9 +100,9 @@
 
     let thoughts = [];
     let index = 0;
-    let ratedThoughts = {};  // <-- Make sure this is declared!
+    let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbz_frR-8QDdnL0UtRF_evtgcaXTAShjgfC1MtPGa2tOn5sOS2xxX529eSHD-RLlMGUv/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbyNK33BAVgJu2D9flBFh8hKhZO38Vy4CyYHNvb7an1gE1vCuje5TaPwBoBgdkj71S-N/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -124,79 +124,4 @@
           })
           .filter(t => t.length > 0);
 
-        shuffle(thoughts);
-
-        if (thoughts.length > 0) {
-          showThought();
-          button.disabled = false;
-          button.textContent = `Tell me a story\n(${thoughts.length} total)`;
-          button.addEventListener('click', showThought);
-        } else {
-          button.textContent = "No thoughts found";
-        }
-      } catch (err) {
-        console.error("Error loading thoughts:", err);
-        button.textContent = "Error loading thoughts";
-      }
-    }
-
-    function showThought() {
-      const thought = thoughts[index];
-      thoughtBox.value = thought;
-      thoughtBox.style.height = 'auto';
-      thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
-      index = (index + 1) % thoughts.length;
-      showStars(thought);
-    }
-
-    function showStars(thought) {
-      starContainer.innerHTML = '';
-      ratingInfo.textContent = 'You have not rated this yet';
-
-      for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('span');
-        star.textContent = '☆';
-        star.className = 'star';
-        star.dataset.value = i;
-        star.addEventListener('click', () => submitRating(thought, i));
-        starContainer.appendChild(star);
-      }
-    }
-
-    async function submitRating(thought, rating) {
-      if (ratedThoughts[thought]) return;
-
-      try {
-        const res = await fetch(ratingURL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ thought, rating })
-        });
-
-        if (res.ok) {
-          ratedThoughts[thought] = rating;
-          renderStars(thought, rating);
-          ratingInfo.textContent = `You rated this: ${rating}/5`;
-        } else {
-          ratingInfo.textContent = "Error submitting rating.";
-        }
-      } catch (err) {
-        console.error("Rating submission failed:", err);
-        ratingInfo.textContent = "Failed to submit rating.";
-      }
-    }
-
-    function renderStars(thought, userRating) {
-      starContainer.innerHTML = '';
-      for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('span');
-        star.textContent = i <= userRating ? '★' : '☆';
-        star.className = 'star';
-        starContainer.appendChild(star);
-      }
-    }
-
-    loadThoughts();
-  </script>
-</body>
-</html>
+       
