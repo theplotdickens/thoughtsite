@@ -9,157 +9,76 @@
       background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
-      font-size: 1.1em;
+      font-size: 1.2em;
       height: 100vh;
       overflow-y: auto;
-      position: relative;
       color: #fff;
       text-shadow: 1px 1px 2px #000;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 0 40px;
     }
 
     button {
       color: #fff;
       border: none;
-      padding: 18px 36px;
-      font-size: 2em;
+      padding: 16px 32px;
+      font-size: 1.6em;
       border-radius: 8px;
       cursor: pointer;
       font-family: "Garamond", serif;
       margin-top: 12vh;
-      transition: background 0.5s;
       background: rgb(255, 0, 0);
       white-space: pre-line;
-    }
-
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
-
-    button:hover:enabled {
-      filter: brightness(0.85);
     }
 
     #thoughtBox {
       margin-top: 30px;
       width: 85%;
       max-width: 800px;
-      min-height: 120px;
-      height: auto;
-      font-size: 1.8em;
+      font-size: 1.6em;
       padding: 20px;
       background: rgba(255, 255, 255, 0.95);
       color: #000;
       border: 1px solid #333;
       border-radius: 10px;
-      resize: none;
       font-family: "Garamond", serif;
-      overflow: hidden;
       transition: height 0.3s ease;
-      box-sizing: border-box;
-      line-height: 1.3em;
-    }
-
-    #ratingContainer {
-      margin-top: 24px;
-      width: 85%;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #fff;
-      font-family: "Garamond", serif;
     }
 
     #stars {
       display: flex;
-      gap: 20px;
       justify-content: center;
-      font-size: 3em;
+      gap: 20px;
+      font-size: 2.5em;
+      margin-top: 20px;
       cursor: pointer;
-      user-select: none;
-    }
-    #stars span {
-      color: #aaa;
-      transition: color 0.2s ease;
-    }
-    #stars span.filled {
-      color: gold;
     }
 
-    #ratingInfo {
+    #ratingStatus {
       margin-top: 10px;
       font-style: italic;
       font-weight: bold;
-      font-size: 1.1em;
-      text-align: center;
-      color: #fff;
-      text-shadow: 0 0 3px #000;
-      line-height: 1.4em;
-    }
-
-    #infoText {
-      margin-top: 14px;
-      width: 85%;
-      max-width: 800px;
-      font-style: italic;
-      font-weight: bold;
-      font-size: 1.1em;
-      text-align: center;
-      color: #fff;
+      color: white;
       font-family: "Garamond", serif;
-      text-shadow: 1px 1px 2px #000;
-      user-select: none;
     }
-
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
-  <textarea id="thoughtBox" readonly></textarea>
-
-  <div id="ratingContainer" aria-label="Star rating container" role="radiogroup" aria-live="polite">
-    <div id="stars" aria-label="Star rating" role="radiogroup" tabindex="0">
-      <span data-value="1" role="radio" aria-checked="false" aria-label="1 star">&#9733;</span>
-      <span data-value="2" role="radio" aria-checked="false" aria-label="2 stars">&#9733;</span>
-      <span data-value="3" role="radio" aria-checked="false" aria-label="3 stars">&#9733;</span>
-      <span data-value="4" role="radio" aria-checked="false" aria-label="4 stars">&#9733;</span>
-      <span data-value="5" role="radio" aria-checked="false" aria-label="5 stars">&#9733;</span>
-    </div>
-    <div id="ratingInfo">You have not rated this yet.</div>
-  </div>
-
-  <div id="infoText">Click the button for a new story, and give it a rating</div>
+  <textarea id="thoughtBox" readonly rows="1"></textarea>
+  <div id="stars"></div>
+  <div id="ratingStatus">You haven't rated this yet.</div>
 
   <script>
-    const button = document.getElementById('thoughtBtn');
+    const thoughtBtn = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starsDiv = document.getElementById('stars');
-    const ratingInfo = document.getElementById('ratingInfo');
-
-    // Your thoughts form published CSV URL (first sheet)
-    const THOUGHTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv';
-
-    // Your ratings form published CSV URL (second sheet)
-    const RATINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv&gid=1948514936';
-
-    // Your ratings form submit URL
-    const RATINGS_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
-
-    // Google Form input field names, exact from form HTML
-    const FORM_THOUGHT_ENTRY = 'entry.1912725127'; // Thought question input name (check your form)
-    const FORM_RATING_ENTRY = 'entry.585431961'; // Rating question input name (check your form)
+    const ratingStatus = document.getElementById('ratingStatus');
 
     let thoughts = [];
     let index = 0;
-    let isAnimating = false;
-
-    // Store ratings loaded from ratings sheet
-    let ratingsData = [];
+    let currentThought = "";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -168,219 +87,67 @@
       }
     }
 
-    // Fetch and parse CSV helper
-    async function fetchCSV(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-      return text.trim().split(/\r?\n/);
-    }
-
-    // Parse thoughts from CSV lines (skip header, column 0=timestamp, 1=thought)
-    function parseThoughts(lines) {
-      return lines.slice(1)
+    async function loadThoughts() {
+      const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
+      const data = await response.text();
+      const lines = data.trim().split(/\r?\n/);
+      thoughts = lines.slice(1)
         .map(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          let text = cols[1] || '';
-          return text.trim().replace(/^"|"$/g, '');
-        })
-        .filter(t => t.length > 0);
-    }
+          return cols[1]?.trim().replace(/^"|"$/g, '') || "";
+        }).filter(Boolean);
 
-    // Parse ratings from CSV lines (skip header, column 0=timestamp, 1=thought, 2=rating)
-    function parseRatings(lines) {
-      return lines.slice(1)
-        .map(row => {
-          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          const thought = (cols[1] || '').trim().replace(/^"|"$/g, '');
-          const rating = parseInt(cols[2]);
-          if (!thought || isNaN(rating)) return null;
-          return { thought, rating };
-        })
-        .filter(x => x !== null);
-    }
+      shuffle(thoughts);
 
-    // Compute average rating for a thought
-    function getAverageRating(thought) {
-      const filtered = ratingsData.filter(r => r.thought === thought);
-      if (filtered.length === 0) return null;
-      const sum = filtered.reduce((acc, r) => acc + r.rating, 0);
-      return (sum / filtered.length).toFixed(2);
-    }
-
-    // Get your rating for a thought if any (assumes no user tracking, so latest rating by anyone counts as yours)
-    // To really store per user you'd need logins or cookies (not implemented here).
-    function getYourRating(thought) {
-      // Here we return null since no user tracking is implemented.
-      // You could extend this to store rating in localStorage keyed by thought:
-      return localStorage.getItem('rating_for_' + thought) || null;
-    }
-
-    // Save your rating locally (so it stays visible)
-    function saveYourRating(thought, rating) {
-      localStorage.setItem('rating_for_' + thought, rating);
-    }
-
-    // Update star UI coloring
-    function updateStarsUI(rating) {
-      [...starsDiv.children].forEach(star => {
-        const val = parseInt(star.dataset.value);
-        if (val <= rating) star.classList.add('filled');
-        else star.classList.remove('filled');
-
-        // Accessibility aria-checked update
-        star.setAttribute('aria-checked', val === rating ? 'true' : 'false');
-      });
-    }
-
-    // Set rating info text under stars
-    function updateRatingInfo(yourRating, avgRating) {
-      if (!yourRating) {
-        ratingInfo.textContent = "You have not rated this yet.";
-        ratingInfo.style.color = "#fff";
-        ratingInfo.style.fontFamily = '"Garamond", serif';
-        ratingInfo.style.textShadow = '1px 1px 2px #000';
-        return;
-      }
-      let text = `Your rating: ${yourRating} star${yourRating > 1 ? 's' : ''}`;
-      if (avgRating !== null) {
-        text += `\nAverage rating: ${avgRating} star${avgRating > 1 ? 's' : ''}`;
-      }
-      ratingInfo.textContent = text;
-    }
-
-    // Submit rating to form
-    async function submitRating(thought, rating) {
-      const formData = new URLSearchParams();
-      formData.append(FORM_THOUGHT_ENTRY, thought);
-      formData.append(FORM_RATING_ENTRY, rating);
-      try {
-        // Fire and forget, no redirect or reload
-        await fetch(RATINGS_FORM_ACTION, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString(),
-        });
-      } catch (e) {
-        // ignore errors
+      if (thoughts.length > 0) {
+        showThought();
+        thoughtBtn.disabled = false;
+        thoughtBtn.textContent = `Tell me a story\n(${thoughts.length} total)`;
+        thoughtBtn.addEventListener('click', showThought);
+      } else {
+        thoughtBtn.textContent = "No thoughts found";
       }
     }
 
-    // Show current thought in textarea and update rating UI/info
     function showThought() {
-      if (isAnimating || thoughts.length === 0) return;
-      isAnimating = true;
-
-      const thought = thoughts[index];
-      thoughtBox.value = thought;
+      currentThought = thoughts[index];
+      thoughtBox.value = currentThought;
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
-
-      // Reset stars and rating info based on saved local rating or none
-      const yourRating = getYourRating(thought);
-      const avgRating = getAverageRating(thought);
-
-      updateStarsUI(yourRating ? parseInt(yourRating) : 0);
-      updateRatingInfo(yourRating ? yourRating : null, avgRating);
-
+      ratingStatus.textContent = "You haven't rated this yet.";
+      highlightStars(0);
       index = (index + 1) % thoughts.length;
-
-      setTimeout(() => {
-        isAnimating = false;
-      }, 300);
     }
 
-    // Load thoughts and ratings, then enable button
-    async function loadData() {
-      try {
-        const [thoughtLines, ratingLines] = await Promise.all([
-          fetchCSV(THOUGHTS_CSV_URL),
-          fetchCSV(RATINGS_CSV_URL)
-        ]);
-        thoughts = parseThoughts(thoughtLines);
-        ratingsData = parseRatings(ratingLines);
-
-        shuffle(thoughts);
-
-        if (thoughts.length > 0) {
-          index = 0;
-          showThought();
-          button.disabled = false;
-          button.textContent = `Tell me a story\n(${thoughts.length} total)`;
-        } else {
-          button.textContent = "No thoughts found";
-        }
-      } catch (error) {
-        console.error("Failed to load data:", error);
-        button.textContent = "Error loading thoughts";
+    function highlightStars(rating) {
+      starsDiv.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = i <= rating ? '★' : '☆';
+        star.addEventListener('click', () => handleRating(i));
+        starsDiv.appendChild(star);
       }
     }
 
-    // Star hover and click handlers
-    function starMouseOverHandler(e) {
-      if (!e.target.dataset.value) return;
-      const val = parseInt(e.target.dataset.value);
-      updateStarsUI(val);
+    async function handleRating(rating) {
+      highlightStars(rating);
+      ratingStatus.textContent = `You rated this ${rating} star${rating > 1 ? 's' : ''}.`;
+      await submitRating(currentThought, rating);
     }
 
-    function starMouseOutHandler() {
-      const thought = thoughts[(index + thoughts.length - 1) % thoughts.length];
-      const yourRating = getYourRating(thought);
-      updateStarsUI(yourRating ? parseInt(yourRating) : 0);
-    }
+    async function submitRating(thought, rating) {
+      const formData = new FormData();
+      formData.append("entry.843381480", thought);
+      formData.append("entry.31827205", rating);
 
-    async function starClickHandler(e) {
-      if (!e.target.dataset.value) return;
-      if (isAnimating) return;
-      const val = parseInt(e.target.dataset.value);
-      const thoughtIndex = (index + thoughts.length - 1) % thoughts.length;
-      const thought = thoughts[thoughtIndex];
-
-      updateStarsUI(val);
-      updateRatingInfo(val, getAverageRating(thought));
-
-      // Save locally
-      saveYourRating(thought, val);
-
-      // Submit rating to form
-      await submitRating(thought, val);
-
-      // Also update local ratingsData so average can update quickly
-      ratingsData.push({ thought, rating: val });
-    }
-
-    // Attach event listeners to stars
-    function attachStarListeners() {
-      starsDiv.addEventListener('mouseover', starMouseOverHandler);
-      starsDiv.addEventListener('mouseout', starMouseOutHandler);
-      starsDiv.addEventListener('click', starClickHandler);
-
-      // Accessibility keyboard support for stars (optional)
-      starsDiv.addEventListener('keydown', e => {
-        const focused = document.activeElement;
-        if (!focused || !focused.dataset.value) return;
-        let val = parseInt(focused.dataset.value);
-        if (e.key === 'ArrowRight' && val < 5) {
-          e.preventDefault();
-          starsDiv.children[val].focus(); // next star
-        } else if (e.key === 'ArrowLeft' && val > 1) {
-          e.preventDefault();
-          starsDiv.children[val - 2].focus(); // previous star
-        } else if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          focused.click();
-        }
+      await fetch("https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse", {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
       });
     }
 
-    // Button click shows next thought
-    button.addEventListener('click', () => {
-      showThought();
-    });
-
-    attachStarListeners();
-    loadData();
-
+    loadThoughts();
   </script>
 </body>
 </html>
