@@ -102,7 +102,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbz7WDvKHcZ2Ua1PxvheY6thNzuvZ3h3FbFMrFLl2mPtsgW2Z_QSHABl3tS_aTcUyn4a/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbw6w2gUi-7sGhCZzU0tdnjnvOrpC2zaX7btkxHOyITn2VJTrw1WThH90Zp8Y0ZGVS5k/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -147,17 +147,11 @@
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
       index = (index + 1) % thoughts.length;
       showStars(thought);
-      fetchAverage(thought);
     }
 
     function showStars(thought) {
       starContainer.innerHTML = '';
       ratingInfo.textContent = 'You have not rated this yet';
-
-      if (ratedThoughts[thought]) {
-        renderStars(thought, ratedThoughts[thought]);
-        return;
-      }
 
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
@@ -166,29 +160,6 @@
         star.dataset.value = i;
         star.addEventListener('click', () => submitRating(thought, i));
         starContainer.appendChild(star);
-      }
-    }
-
-    function renderStars(thought, userRating) {
-      starContainer.innerHTML = '';
-      for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('span');
-        star.textContent = i <= userRating ? '★' : '☆';
-        star.className = 'star';
-        starContainer.appendChild(star);
-      }
-      ratingInfo.textContent = `You rated this: ${userRating}/5\n(loading average...)`;
-    }
-
-    async function fetchAverage(thought) {
-      try {
-        const response = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
-        const result = await response.json();
-        if (result.average) {
-          ratingInfo.textContent += `\nAverage rating: ${result.average.toFixed(2)}/5`;
-        }
-      } catch (err) {
-        console.error('Failed to fetch average rating:', err);
       }
     }
 
@@ -205,7 +176,6 @@
         if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
-          fetchAverage(thought);
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -213,6 +183,17 @@
         console.error("Rating submission failed:", err);
         ratingInfo.textContent = "Failed to submit rating.";
       }
+    }
+
+    function renderStars(thought, userRating) {
+      starContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = i <= userRating ? '★' : '☆';
+        star.className = 'star';
+        starContainer.appendChild(star);
+      }
+      ratingInfo.textContent = `You rated this: ${userRating}/5`;
     }
 
     loadThoughts();
