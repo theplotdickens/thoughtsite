@@ -5,7 +5,7 @@
 <title>Brian's Thoughts</title>
 <style>
   body {
-    background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2a2cb104.png') no-repeat center center fixed;
+    background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
     background-size: cover;
     font-family: "Garamond", serif;
     margin: 0;
@@ -61,7 +61,7 @@
     display: flex;
     justify-content: center;
     gap: 20px;
-    font-size: 3em;
+    font-size: 3.5em;
   }
   .star {
     cursor: pointer;
@@ -114,7 +114,7 @@
   let currentIndex = 0;
   let userRating = null;
 
-  // Fetch thoughts (page 1)
+  // Load thoughts from first sheet
   async function loadThoughts() {
     try {
       const res = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
@@ -132,7 +132,7 @@
     }
   }
 
-  // Fetch ratings (page 2 - gid=1948514936)
+  // Load ratings from second sheet (adjust gid if needed)
   async function loadRatings() {
     try {
       const res = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv&gid=1948514936');
@@ -150,90 +150,124 @@
       });
       ratingsData = {};
       Object.keys(sumCount).forEach(thought => {
-        ratingsData[thought] = (sumCount[thought].sum / sumCount[thought].count).toFixed(2);
+        ratingsData[thought] = {
+          average: (sumCount[thought].sum / sumCount[thought].count).toFixed(2),
+          count: sumCount[thought].count
+        };
       });
     } catch (e) {
       console.error("Error loading ratings:", e);
+      ratingsData = {};
     }
   }
 
-  function createStars() {
+  function createStars(rating) {
     ratingContainer.innerHTML = '';
     for(let i=1; i<=5; i++) {
       const star = document.createElement('span');
-      star.textContent = '★';
       star.classList.add('star');
+      star.innerHTML = '★';
+      if (userRating !== null && i <= userRating) star.classList.add('selected');
       star.dataset.value = i;
-      star.addEventListener('mouseover', () => highlightStars(i));
-      star.addEventListener('mouseout', () => highlightStars(userRating || 0));
-      star.addEventListener('click', () => {
-        userRating = i;
-        highlightStars(i);
-        submitRating(thoughts[currentIndex]);
-      });
       ratingContainer.appendChild(star);
     }
   }
 
-  function highlightStars(count) {
-    [...ratingContainer.children].forEach((star, idx) => {
-      if (idx < count) star.classList.add('selected');
-      else star.classList.remove('selected');
-    });
-  }
-
-  function showThought() {
-    if (thoughts.length === 0) return;
-    userRating = null;
-    highlightStars(0);
-    const thought = thoughts[currentIndex];
-    thoughtBox.value = thought;
-    const avg = ratingsData[thought];
-    ratingInfo.innerText = avg ? `Average rating: ${avg}\nYou have not rated this yet.` : "You have not rated this yet.";
-    currentIndex = (currentIndex + 1) % thoughts.length;
-  }
-
-  async function submitRating(thought) {
-    if (!userRating || !thought) return;
-
-    // Google Form entry IDs - make sure these match your form
-    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
-    const data = new URLSearchParams();
-    data.append('entry.1330328457', thought);
-    data.append('entry.891370315', userRating);
-
-    try {
-      await fetch(formUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: data.toString(),
-      });
-      ratingInfo.innerText = `Your rating: ${userRating}\nAverage rating: ${ratingsData[thought] || 'N/A'}`;
-    } catch (e) {
-      console.error("Failed to send rating:", e);
+  function updateRatingInfo() {
+    if(userRating === null) {
+      ratingInfo.textContent = "You have not rated this yet.";
+      ratingInfo.style.color = 'white';
+      ratingInfo.style.fontFamily = '"Garamond", serif';
+      ratingInfo.style.fontStyle = 'italic';
+      ratingInfo.style.textAlign = 'center';
+      ratingInfo.style.whiteSpace = 'pre-line';
+    } else {
+      const thoughtText = thoughts[currentIndex === 0 ? thoughts.length - 1 : currentIndex - 1];
+      const avg = ratingsData[thoughtText]?.average || "No ratings yet";
+      ratingInfo.innerHTML =
+        `Your rating: ${userRating} star${userRating > 1 ? 's' : ''}\n` +
+        `Average rating: ${avg}`;
     }
   }
 
+  // Submit rating to Google Form
+  async function submitRating(thought, rating) {
+    // Your Google Form URL (change to your form's "formResponse" URL)
+    // Extract the correct input entry IDs from your form.
+    // Example: 
+    // Thought question entry: entry.1234567890
+    // Rating question entry: entry.0987654321
+    const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
+
+    const formData = new URLSearchParams();
+    formData.append('entry.1483316150', thought);  // Replace with your 'Thought' question's entry ID
+    formData.append('entry.1787151319', rating);   // Replace with your 'Rating' question's entry ID
+
+    try {
+      await fetch(formURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+    } catch (e) {
+      console.error("Error submitting rating:", e);
+    }
+  }
+
+  function setupStarEvents() {
+    ratingContainer.querySelectorAll('.star').forEach(star => {
+      star.addEventListener('mouseenter', () => {
+        const val = parseInt(star.dataset.value);
+        ratingContainer.querySelectorAll('.star').forEach(s => {
+          s.classList.toggle('hovered', parseInt(s.dataset.value) <= val);
+        });
+      });
+      star.addEventListener('mouseleave', () => {
+        ratingContainer.querySelectorAll('.star').forEach(s => {
+          s.classList.remove('hovered');
+        });
+      });
+      star.addEventListener('click', async () => {
+        const val = parseInt(star.dataset.value);
+        userRating = val;
+        createStars(userRating);
+        updateRatingInfo();
+        const currentThought = thoughts[currentIndex === 0 ? thoughts.length -1 : currentIndex -1];
+        await submitRating(currentThought, userRating);
+        await loadRatings();  // refresh averages
+        updateRatingInfo();
+      });
+    });
+  }
+
+  async function showThought() {
+    if (thoughts.length === 0) return;
+    thoughtBox.value = thoughts[currentIndex];
+    userRating = null;
+    createStars(userRating);
+    updateRatingInfo();
+    setupStarEvents();
+    currentIndex = (currentIndex + 1) % thoughts.length;
+  }
+
   async function init() {
+    button.textContent = "Loading...";
     await loadThoughts();
     await loadRatings();
-    createStars();
-    showThought();
-    button.disabled = false;
-    button.textContent = `Tell me a story\n(${thoughts.length} total)`;
-    button.onclick = showThought;
-
-    // Animate button color
-    let hue = 0;
-    setInterval(() => {
-      hue = (hue + 2) % 360;
-      button.style.background = `hsl(${hue}, 100%, 50%)`;
-    }, 80);
+    if (thoughts.length > 0) {
+      button.disabled = false;
+      button.textContent = `Tell me a story\n(${thoughts.length} total)`;
+      button.addEventListener('click', showThought);
+      showThought();
+    } else {
+      button.textContent = "No thoughts found";
+    }
   }
 
   init();
 </script>
-
 </body>
 </html>
