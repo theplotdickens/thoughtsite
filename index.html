@@ -59,6 +59,7 @@
       border: 1px solid #333;
       border-radius: 10px;
       resize: none;
+      font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
     }
@@ -144,6 +145,7 @@
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
       index = (index + 1) % thoughts.length;
       showStars(thought);
+      fetchAverage(thought);
     }
 
     function showStars(thought) {
@@ -182,7 +184,8 @@
         if (text.includes("Success")) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
-          ratingInfo.textContent = `You rated this: ${rating}/5`;
+          ratingInfo.textContent = `You rated this: ${rating}/5\n(loading average...)`;
+          fetchAverage(thought);
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -199,6 +202,18 @@
         star.textContent = i <= userRating ? '★' : '☆';
         star.className = 'star';
         starContainer.appendChild(star);
+      }
+    }
+
+    async function fetchAverage(thought) {
+      try {
+        const response = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
+        const result = await response.json();
+        if (result.average) {
+          ratingInfo.textContent += `\nAverage rating: ${result.average.toFixed(2)}/5`;
+        }
+      } catch (err) {
+        console.error('Failed to fetch average rating:', err);
       }
     }
 
