@@ -46,6 +46,7 @@
     #instruction {
       margin-top: 20px;
       font-size: 1.2em;
+      font-family: "Garamond", serif;
     }
 
     #thoughtBox {
@@ -172,10 +173,7 @@
           body: JSON.stringify({ thought, rating })
         });
 
-        const text = await res.text();
-        console.log('Server response:', text);
-
-        if (res.ok && text === "Success") {
+        if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
         } else {
