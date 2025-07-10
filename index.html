@@ -46,7 +46,6 @@
     #instruction {
       margin-top: 20px;
       font-size: 1.2em;
-      font-family: "Garamond", serif;
     }
 
     #thoughtBox {
@@ -60,7 +59,6 @@
       border: 1px solid #333;
       border-radius: 10px;
       resize: none;
-      font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
     }
@@ -77,7 +75,6 @@
     }
 
     #ratingInfo {
-      font-family: "Garamond", serif;
       color: white;
       text-align: center;
       margin-top: 10px;
@@ -124,4 +121,88 @@
           })
           .filter(t => t.length > 0);
 
-       
+        shuffle(thoughts);
+
+        if (thoughts.length > 0) {
+          showThought();
+          button.disabled = false;
+          button.textContent = `Tell me a story\n(${thoughts.length} total)`;
+          button.addEventListener('click', showThought);
+        } else {
+          button.textContent = "No thoughts found";
+        }
+      } catch (err) {
+        console.error("Error loading thoughts:", err);
+        button.textContent = "Error loading thoughts";
+      }
+    }
+
+    function showThought() {
+      const thought = thoughts[index];
+      thoughtBox.value = thought;
+      thoughtBox.style.height = 'auto';
+      thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+      index = (index + 1) % thoughts.length;
+      showStars(thought);
+    }
+
+    function showStars(thought) {
+      starContainer.innerHTML = '';
+      ratingInfo.textContent = 'You have not rated this yet';
+
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = '☆';
+        star.className = 'star';
+        star.dataset.value = i;
+        star.addEventListener('click', () => submitRating(thought, i));
+        starContainer.appendChild(star);
+      }
+    }
+
+    async function submitRating(thought, rating) {
+      if (ratedThoughts[thought]) return;
+
+      const formData = new URLSearchParams();
+      formData.append('thought', thought);
+      formData.append('rating', rating);
+
+      try {
+        const res = await fetch(ratingURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        });
+
+        const text = await res.text();
+        console.log("Server response:", text);
+
+        if (text.includes("Success")) {
+          ratedThoughts[thought] = rating;
+          renderStars(thought, rating);
+          ratingInfo.textContent = `You rated this: ${rating}/5`;
+        } else {
+          ratingInfo.textContent = "Error submitting rating.";
+        }
+      } catch (err) {
+        console.error("Rating submission failed:", err);
+        ratingInfo.textContent = "Failed to submit rating.";
+      }
+    }
+
+    function renderStars(thought, userRating) {
+      starContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = i <= userRating ? '★' : '☆';
+        star.className = 'star';
+        starContainer.appendChild(star);
+      }
+    }
+
+    loadThoughts();
+  </script>
+</body>
+</html>
