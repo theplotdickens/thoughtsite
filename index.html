@@ -1,273 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Brian's Thoughts</title>
-<style>
-  body {
-    background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
-    background-size: cover;
-    font-family: "Garamond", serif;
-    margin: 0;
-    font-size: 1.25em;
-    height: 100vh;
-    overflow-y: auto;
-    color: #fff;
-    text-shadow: 1px 1px 2px #000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  <meta charset="UTF-8" />
+  <title>Brian's Thoughts</title>
+  <style>
+    body {
+      background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: "Garamond", serif;
+      margin: 0;
+      font-size: 1.1em;
+      height: 100vh;
+      overflow-y: auto;
+      position: relative;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px;
+    }
 
-  button {
-    color: #fff;
-    border: none;
-    padding: 18px 36px;
-    font-size: 2.5em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: "Garamond", serif;
-    margin-top: 12vh;
-    transition: background 0.5s;
-    background: hsl(0, 100%, 50%);
-    white-space: pre-line;
-  }
-  button:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-  button:hover:enabled {
-    filter: brightness(0.85);
-  }
+    button {
+      color: #fff;
+      border: none;
+      padding: 18px 36px;
+      font-size: 2em;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: "Garamond", serif;
+      margin-top: 12vh;
+      transition: background 0.5s;
+      background: rgb(255, 0, 0);
+      white-space: pre-line;
+    }
 
-  #thoughtBox {
-    margin-top: 30px;
-    width: 85%;
-    max-width: 800px;
-    height: 120px;
-    font-size: 1.8em;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
-    border: 1px solid #333;
-    border-radius: 10px;
-    resize: none;
-    font-family: "Garamond", serif;
-    overflow-y: auto;
-  }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
 
-  #ratingContainer {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    font-size: 3.5em;
-  }
-  .star {
-    cursor: pointer;
-    color: #bbb;
-    user-select: none;
-    transition: color 0.3s;
-  }
-  .star.selected,
-  .star.hovered {
-    color: gold;
-  }
+    button:hover:enabled {
+      filter: brightness(0.85);
+    }
 
-  #ratingInfo {
-    margin-top: 10px;
-    font-family: "Garamond", serif;
-    color: white;
-    font-style: italic;
-    text-align: center;
-    white-space: pre-line;
-  }
+    #instructions {
+      margin-top: 8px;
+      font-style: italic;
+      font-weight: bold;
+      font-family: "Garamond", serif;
+      font-size: 1em;
+      text-align: center;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+    }
 
-  #infoText {
-    margin-top: 15px;
-    font-family: "Garamond", serif;
-    font-style: italic;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    max-width: 85%;
-  }
-</style>
+    #thoughtBox {
+      margin-top: 30px;
+      width: 85%;
+      max-width: 800px;
+      min-height: 120px;
+      height: auto;
+      font-size: 1.8em;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      border: 1px solid #333;
+      border-radius: 10px;
+      resize: none;
+      font-family: "Garamond", serif;
+      overflow: hidden;
+      transition: height 0.3s ease;
+      white-space: pre-wrap;
+      line-height: 1.3em;
+    }
+
+    #ratingContainer {
+      margin-top: 16px;
+      text-align: center;
+      font-family: "Garamond", serif;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .stars {
+      display: inline-flex;
+      gap: 18px;
+      font-size: 2.6em;
+      cursor: pointer;
+      user-select: none;
+      justify-content: center;
+    }
+
+    .star {
+      color: #bbb;
+      transition: color 0.3s;
+    }
+
+    .star.hovered,
+    .star.selected {
+      color: gold;
+    }
+
+    #userRatingText,
+    #avgRatingText {
+      margin-top: 8px;
+      font-size: 1.1em;
+      font-style: italic;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    #userRatingText {
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <button id="thoughtBtn" disabled>Loading...</button>
+  <div id="instructions">Click the button for a new story, and give it a rating</div>
+  <textarea id="thoughtBox" readonly></textarea>
 
-<button id="thoughtBtn" disabled>Loading...</button>
-<textarea id="thoughtBox" readonly></textarea>
+  <div id="ratingContainer" style="display:none;">
+    <div class="stars" id="starsContainer" aria-label="Star rating">
+      <!-- Stars inserted dynamically -->
+    </div>
+    <div id="userRatingText">You have not rated this yet</div>
+    <div id="avgRatingText"></div>
+  </div>
 
-<div id="ratingContainer" aria-label="Star rating"></div>
-<div id="ratingInfo">You have not rated this yet.</div>
-<div id="infoText">Click the button for a new story, and give it a rating</div>
+  <script>
+    const button = document.getElementById('thoughtBtn');
+    const thoughtBox = document.getElementById('thoughtBox');
+    const ratingContainer = document.getElementById('ratingContainer');
+    const starsContainer = document.getElementById('starsContainer');
+    const userRatingText = document.getElementById('userRatingText');
+    const avgRatingText = document.getElementById('avgRatingText');
 
-<script>
-  const button = document.getElementById('thoughtBtn');
-  const thoughtBox = document.getElementById('thoughtBox');
-  const ratingContainer = document.getElementById('ratingContainer');
-  const ratingInfo = document.getElementById('ratingInfo');
+    let thoughts = [];
+    let index = 0;
+    let isAnimating = false;
+    const sheetThoughtsURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv';
+    const ratingsFormURL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
 
-  let thoughts = [];
-  let ratingsData = {};
-  let currentIndex = 0;
-  let userRating = null;
+    // Load thoughts from the sheet
+    async function loadThoughts() {
+      try {
+        const response = await fetch(sheetThoughtsURL);
+        const data = await response.text();
+        const lines = data.trim().split(/\r?\n/);
 
-  // Load thoughts from first sheet
-  async function loadThoughts() {
-    try {
-      const res = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
-      const text = await res.text();
-      const lines = text.trim().split('\n');
-      thoughts = lines.slice(1).map(line => {
-        const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        return parts[1].replace(/^"|"$/g, '').trim();
-      }).filter(t => t.length > 0);
-      if (thoughts.length === 0) throw new Error("No thoughts found");
-    } catch (e) {
-      console.error("Error loading thoughts:", e);
-      button.textContent = "Error loading thoughts";
-      return;
+        thoughts = lines.slice(1)
+          .map(row => {
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            return cols[1] ? cols[1].trim().replace(/^"|"$/g, '') : '';
+          })
+          .filter(t => t.length > 0);
+
+        shuffle(thoughts);
+
+        if (thoughts.length > 0) {
+          index = 0;
+          showThought();
+          button.disabled = false;
+          button.textContent = `Tell me a story\n(${thoughts.length} total)`;
+        } else {
+          button.textContent = "No thoughts found";
+        }
+      } catch (e) {
+        console.error('Failed to load thoughts:', e);
+        button.textContent = "Error loading thoughts";
+      }
     }
-  }
 
-  // Load ratings from second sheet (adjust gid if needed)
-  async function loadRatings() {
-    try {
-      const res = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv&gid=1948514936');
-      const text = await res.text();
-      const lines = text.trim().split('\n');
-      const sumCount = {};
-      lines.slice(1).forEach(line => {
-        const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        const thought = (cols[1] || '').replace(/^"|"$/g, '').trim();
-        const rating = parseInt(cols[2]) || 0;
-        if (!thought || rating === 0) return;
-        if (!sumCount[thought]) sumCount[thought] = { sum: 0, count: 0 };
-        sumCount[thought].sum += rating;
-        sumCount[thought].count++;
-      });
-      ratingsData = {};
-      Object.keys(sumCount).forEach(thought => {
-        ratingsData[thought] = {
-          average: (sumCount[thought].sum / sumCount[thought].count).toFixed(2),
-          count: sumCount[thought].count
-        };
-      });
-    } catch (e) {
-      console.error("Error loading ratings:", e);
-      ratingsData = {};
+    // Shuffle thoughts array
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
     }
-  }
 
-  function createStars(rating) {
-    ratingContainer.innerHTML = '';
-    for(let i=1; i<=5; i++) {
-      const star = document.createElement('span');
-      star.classList.add('star');
-      star.innerHTML = '★';
-      if (userRating !== null && i <= userRating) star.classList.add('selected');
-      star.dataset.value = i;
-      ratingContainer.appendChild(star);
+    // Show current thought and rating UI
+    async function showThought() {
+      if (isAnimating || thoughts.length === 0) return;
+      isAnimating = true;
+
+      const thought = thoughts[index];
+      thoughtBox.value = thought;
+      thoughtBox.style.height = 'auto';
+      thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+
+      userRatingText.textContent = 'Loading your rating...';
+      avgRatingText.textContent = '';
+      ratingContainer.style.display = 'block';
+
+      // Reset stars display
+      setStars(0);
+
+      // Load ratings and update stars
+      const ratings = await fetchRatings();
+      const userRating = getUserRating(ratings, thought);
+      const avgRating = getAverageRating(ratings, thought);
+
+      setStars(userRating);
+      updateRatingTexts(userRating, avgRating);
+
+      index = (index + 1) % thoughts.length;
+
+      isAnimating = false;
     }
-  }
 
-  function updateRatingInfo() {
-    if(userRating === null) {
-      ratingInfo.textContent = "You have not rated this yet.";
-      ratingInfo.style.color = 'white';
-      ratingInfo.style.fontFamily = '"Garamond", serif';
-      ratingInfo.style.fontStyle = 'italic';
-      ratingInfo.style.textAlign = 'center';
-      ratingInfo.style.whiteSpace = 'pre-line';
-    } else {
-      const thoughtText = thoughts[currentIndex === 0 ? thoughts.length - 1 : currentIndex - 1];
-      const avg = ratingsData[thoughtText]?.average || "No ratings yet";
-      ratingInfo.innerHTML =
-        `Your rating: ${userRating} star${userRating > 1 ? 's' : ''}\n` +
-        `Average rating: ${avg}`;
-    }
-  }
+    // Set star colors based on selected value
+    function setStars(selected) {
+      starsContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.classList.add('star');
+        star.textContent = '★';
+        if (i <= selected) star.classList.add('selected');
 
-  // Submit rating to Google Form
-  async function submitRating(thought, rating) {
-    // Your Google Form URL (change to your form's "formResponse" URL)
-    // Extract the correct input entry IDs from your form.
-    // Example: 
-    // Thought question entry: entry.1234567890
-    // Rating question entry: entry.0987654321
-    const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
-
-    const formData = new URLSearchParams();
-    formData.append('entry.1483316150', thought);  // Replace with your 'Thought' question's entry ID
-    formData.append('entry.1787151319', rating);   // Replace with your 'Rating' question's entry ID
-
-    try {
-      await fetch(formURL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString(),
-      });
-    } catch (e) {
-      console.error("Error submitting rating:", e);
-    }
-  }
-
-  function setupStarEvents() {
-    ratingContainer.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('mouseenter', () => {
-        const val = parseInt(star.dataset.value);
-        ratingContainer.querySelectorAll('.star').forEach(s => {
-          s.classList.toggle('hovered', parseInt(s.dataset.value) <= val);
+        // Hover effect
+        star.addEventListener('mouseenter', () => {
+          highlightStars(i);
         });
-      });
-      star.addEventListener('mouseleave', () => {
-        ratingContainer.querySelectorAll('.star').forEach(s => {
-          s.classList.remove('hovered');
+        star.addEventListener('mouseleave', () => {
+          highlightStars(selected);
         });
-      });
-      star.addEventListener('click', async () => {
-        const val = parseInt(star.dataset.value);
-        userRating = val;
-        createStars(userRating);
-        updateRatingInfo();
-        const currentThought = thoughts[currentIndex === 0 ? thoughts.length -1 : currentIndex -1];
-        await submitRating(currentThought, userRating);
-        await loadRatings();  // refresh averages
-        updateRatingInfo();
-      });
-    });
-  }
 
-  async function showThought() {
-    if (thoughts.length === 0) return;
-    thoughtBox.value = thoughts[currentIndex];
-    userRating = null;
-    createStars(userRating);
-    updateRatingInfo();
-    setupStarEvents();
-    currentIndex = (currentIndex + 1) % thoughts.length;
-  }
+        // Click to rate
+        star.addEventListener('click', () => {
+          submitRating(i);
+          setStars(i);
+          userRatingText.textContent = `You rated this ${i} star${i > 1 ? 's' : ''}`;
+          avgRatingText.style.marginLeft = '20px'; // indent avg rating
+        });
 
-  async function init() {
-    button.textContent = "Loading...";
-    await loadThoughts();
-    await loadRatings();
-    if (thoughts.length > 0) {
-      button.disabled = false;
-      button.textContent = `Tell me a story\n(${thoughts.length} total)`;
-      button.addEventListener('click', showThought);
-      showThought();
-    } else {
-      button.textContent = "No thoughts found";
+        starsContainer.appendChild(star);
+      }
     }
-  }
 
-  init();
-</script>
+    // Highlight stars on hover
+    function highlightStars(count) {
+      const stars = starsContainer.querySelectorAll('.star');
+      stars.forEach((star, idx) => {
+        if (idx < count) star.classList.add('hovered');
+        else star.classList.remove('hovered');
+      });
+    }
+
+    // Update rating texts under stars
+    function updateRatingTexts(userRating, avgRating) {
+      if (userRating > 0) {
+        userRatingText.textContent = `You rated this ${userRating} star${userRating > 1 ? 's' : ''}`;
+      } else {
+        userRatingText.textContent = 'You have not rated this yet';
+      }
+
+      if (avgRating > 0) {
+        avgRatingText.textContent = `Average rating: ${avgRating.toFixed(2)} ⭐`;
+      } else {
+        avgRatingText.textContent = 'No ratings yet';
+      }
+    }
+
+    // Fetch all ratings from the spreadsheet CSV
+    async function fetchRatings() {
+      try {
+        const response = await fetch(sheetThoughtsURL);
+        const data = await response.text();
+        const lines = data.trim().split(/\r?\n/);
+        const ratings = [];
+
+        lines.slice(1).forEach(row => {
+          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
+          const ratingStr = cols[2]?.trim().replace(/^"|"$/g, '');
+          const rating = parseInt(ratingStr, 10);
+
+          if (thought && !isNaN(rating)) {
+            ratings.push({ thought, rating });
+          }
+        });
+
+        return ratings;
+      } catch (e) {
+        console.error('Failed to load ratings:', e);
+        return [];
+      }
+    }
+
+    // Get the rating this user gave for the thought (if any)
+    // Since no user login, we'll check if there’s a rating for this thought in the sheet (first found)
+    function getUserRating(ratings, thought) {
+      // This is a limitation: without user accounts, we can't identify unique users
+      // So we simply return 0 (not rated) always
+      // Could be enhanced with cookies/localStorage if desired
+      return 0;
+    }
+
+    // Calculate average rating for a thought
+    function getAverageRating(ratings, thought) {
+      const filtered = ratings.filter(r => r.thought === thought);
+      if (filtered.length === 0) return 0;
+      const sum = filtered.reduce((acc, cur) => acc + cur.rating, 0);
+      return sum / filtered.length;
+    }
+
+    // Submit rating to Google Form
+    async function submitRating(rating) {
+      const thought = thoughts[(index + thoughts.length - 1) % thoughts.length]; // current thought index
+
+      // Map form field names (Entry IDs) - **You must update these for your form!**
+      // Find them by viewing the form source or prefilled form URL
+      const thoughtEntry = 'entry.1174520647'; // Thought question
+      const ratingEntry = 'entry.1776810171'; // Rating question
+
+      const formData = new URLSearchParams();
+      formData.append(thoughtEntry, thought);
+      formData.append(ratingEntry, rating);
+
+      try {
+        await fetch(ratingsFormURL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData.toString(),
+        });
+        // After submit, update average rating (fetch latest ratings again)
+        const ratings = await fetchRatings();
+        const avgRating = getAverageRating(ratings, thought);
+        updateRatingTexts(rating, avgRating);
+      } catch (e) {
+        console.error('Failed to submit rating:', e);
+      }
+    }
+
+    // RGB background fade for button (slowed down)
+    let hue = 0;
+    function updateButtonColor() {
+      hue = (hue + 1) % 360; // slower
+      button.style.background = `hsl(${hue}, 100%, 50%)`;
+    }
+    setInterval(updateButtonColor, 80);
+
+    button.addEventListener('click', showThought);
+
+    loadThoughts();
+  </script>
 </body>
 </html>
