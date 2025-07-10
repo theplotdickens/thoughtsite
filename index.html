@@ -43,13 +43,24 @@
       filter: brightness(0.85);
     }
 
+    #instructionText {
+      margin-top: 10px;
+      max-width: 90%;
+      font-style: italic;
+      font-weight: bold;
+      font-family: "Garamond", serif;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+      text-align: center;
+    }
+
     #thoughtBox {
       margin-top: 30px;
       width: 85%;
       max-width: 800px;
-      min-height: 100px;
+      min-height: 120px;
       height: auto;
-      font-size: 1.8em;
+      font-size: 1.6em;
       padding: 24px;
       background: rgba(255, 255, 255, 0.95);
       color: #000;
@@ -61,39 +72,6 @@
       transition: height 0.3s ease;
     }
 
-    #ratingContainer {
-      margin-top: 12px;
-      font-family: "Garamond", serif;
-      color: #000;
-      background: rgba(255,255,255,0.95);
-      border-radius: 10px;
-      padding: 12px 20px;
-      width: 85%;
-      max-width: 800px;
-      text-align: center;
-      user-select: none;
-    }
-
-    .star {
-      font-size: 3rem;
-      color: #ccc;
-      margin: 0 10px;
-      cursor: pointer;
-      transition: color 0.3s;
-      user-select: none;
-    }
-    .star.selected, .star.hovered {
-      color: gold;
-    }
-
-    #ratingText {
-      margin-top: 8px;
-      font-size: 1.2rem;
-      color: #000;
-      font-weight: bold;
-      font-style: italic;
-    }
-
     #recentContainer {
       margin-top: 40px;
       padding: 10px;
@@ -102,8 +80,6 @@
       font-size: 1em;
       font-style: italic;
       font-weight: bold;
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
     }
 
     summary {
@@ -112,13 +88,11 @@
       outline: none;
       padding: 10px;
       font-weight: bold;
-      list-style: none; /* remove default arrow */
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
+      list-style: none;
     }
 
     summary::-webkit-details-marker {
-      display: none; /* remove arrow in WebKit browsers */
+      display: none;
     }
 
     summary::before {
@@ -143,19 +117,56 @@
 
     #recentUpdates {
       padding-top: 10px;
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
+    }
+
+    .stars {
+      margin-top: 20px;
+      user-select: none;
+      font-size: 2.8em;
+      letter-spacing: 0.6em;
+      color: #ccc;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .star {
+      display: inline-block;
+      transition: color 0.3s;
+    }
+    .star.filled {
+      color: gold;
+    }
+
+    #ratingInfo {
+      margin-top: 6px;
+      font-size: 1.1em;
+      color: #222;
+      font-weight: bold;
+      font-family: "Garamond", serif;
+      text-align: center;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
+  <div id="instructionText">Click the button for a new story,<br>and give it a rating</div>
   <textarea id="thoughtBox" readonly></textarea>
 
-  <div id="ratingContainer" style="display:none;">
-    <div id="stars"></div>
-    <div id="ratingText"></div>
+  <div class="stars" id="starsContainer" aria-label="Star rating">
+    <span class="star" data-value="1">&#9733;</span>
+    <span class="star" data-value="2">&#9733;</span>
+    <span class="star" data-value="3">&#9733;</span>
+    <span class="star" data-value="4">&#9733;</span>
+    <span class="star" data-value="5">&#9733;</span>
   </div>
+  <div id="ratingInfo"></div>
 
   <div id="recentContainer">
     <details open>
@@ -164,199 +175,213 @@
     </details>
   </div>
 
-  <script>
-    const button = document.getElementById('thoughtBtn');
-    const thoughtBox = document.getElementById('thoughtBox');
-    const recentDiv = document.getElementById('recentUpdates');
-    const ratingContainer = document.getElementById('ratingContainer');
-    const starsDiv = document.getElementById('stars');
-    const ratingText = document.getElementById('ratingText');
+<script>
+  const button = document.getElementById('thoughtBtn');
+  const thoughtBox = document.getElementById('thoughtBox');
+  const recentDiv = document.getElementById('recentUpdates');
+  const starsContainer = document.getElementById('starsContainer');
+  const stars = starsContainer.querySelectorAll('.star');
+  const ratingInfo = document.getElementById('ratingInfo');
 
-    let thoughts = [];
-    let index = 0;
-    let isAnimating = false;
-    let ratingsData = []; // will hold all ratings from sheet
-    let yourRatings = {}; // track what user rated by thought text key
+  let thoughts = [];
+  let index = 0;
+  let isAnimating = false;
 
-    // Replace these with your Google Form input IDs for Thought and Rating fields!
-    // To find: Inspect element on form inputs and find name="entry.xxxxxxxx"
-    const GOOGLE_FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse";
-    const ENTRY_THOUGHT = "entry.1683219308"; // Thought field entry id
-    const ENTRY_RATING = "entry.970940580";    // Rating field entry id
+  // Map to keep track of user ratings locally by thought text
+  const userRatings = new Map();
 
-    // Helper: shuffle array in place
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
+  // Store average ratings from form responses
+  let averageRatings = {};
+
+  // Google Form IDs for rating submission
+  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
+  const thoughtEntry = 'entry.1611238270'; // Replace with your actual 'Thought' field ID
+  const ratingEntry = 'entry.1189830351'; // Replace with your actual 'Rating' field ID
+
+  // Shuffle array utility
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
+  }
 
-    // Load thoughts and ratings from spreadsheet
-    async function loadData() {
-      try {
-        // Load thoughts (first sheet)
-        const thoughtsResp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?gid=961892928&single=true&output=csv');
-        const thoughtsText = await thoughtsResp.text();
-        const thoughtLines = thoughtsText.trim().split(/\r?\n/);
+  async function loadThoughts() {
+    try {
+      const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
+      const data = await response.text();
+      const lines = data.trim().split(/\r?\n/);
 
-        thoughts = thoughtLines.slice(1)
-          .map(row => {
-            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            let text = cols[1] || '';
-            return text.trim().replace(/^"|"$/g, '');
-          })
-          .filter(t => t.length > 0);
-
-        shuffle(thoughts);
-
-        // Load ratings (second sheet)
-        const ratingsResp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?gid=1948514936&single=true&output=csv');
-        const ratingsText = await ratingsResp.text();
-        const ratingLines = ratingsText.trim().split(/\r?\n/);
-
-        ratingsData = ratingLines.slice(1)
-          .map(row => {
-            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            return {
-              thought: (cols[1] || '').trim().replace(/^"|"$/g, ''),
-              rating: parseInt(cols[2]) || 0
-            };
-          }).filter(r => r.thought && r.rating > 0);
-
-        // Recent memory counts from thoughts sheet
-        const dateCounts = {};
-        thoughtLines.slice(1).forEach(row => {
+      thoughts = lines.slice(1)
+        .map(row => {
           const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          const timestamp = cols[0];
-          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
-          if (!thought) return;
+          let text = cols[1] || '';
+          return text.trim().replace(/^"|"$/g, '');
+        })
+        .filter(t => t.length > 0);
 
-          const date = new Date(timestamp);
-          if (isNaN(date)) return;
+      // Load ratings from second sheet CSV
+      // We fetch the CSV of the ratings form response page specifically (adjust URL with correct gid)
+      const ratingsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv&gid=1948514936';
+      const ratingsResponse = await fetch(ratingsUrl);
+      const ratingsData = await ratingsResponse.text();
+      const ratingLines = ratingsData.trim().split(/\r?\n/);
 
-          const key = date.toDateString();
-          if (!dateCounts[key]) dateCounts[key] = 0;
-          dateCounts[key]++;
-        });
+      // Calculate average rating for each thought
+      averageRatings = {};
+      ratingLines.slice(1).forEach(row => {
+        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        const thoughtText = (cols[1] || '').trim().replace(/^"|"$/g, '');
+        const ratingVal = parseInt(cols[2], 10);
+        if (!thoughtText || isNaN(ratingVal)) return;
 
-        recentDiv.innerHTML = Object.entries(dateCounts)
-          .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-          .map(([date, count]) => `${date} — ${count} ${count === 1 ? 'memory' : 'memories'}`)
-          .join('<br>');
-
-        if (thoughts.length > 0) {
-          showThought();
-          button.disabled = false;
-          button.textContent = `Tell me a story\n(${thoughts.length} total)`;
-          button.addEventListener('click', showThought);
-        } else {
-          button.textContent = "No thoughts found";
+        if (!averageRatings[thoughtText]) {
+          averageRatings[thoughtText] = { sum: 0, count: 0 };
         }
-      } catch (error) {
-        console.error("Failed to load data:", error);
-        button.textContent = "Error loading thoughts";
-      }
-    }
+        averageRatings[thoughtText].sum += ratingVal;
+        averageRatings[thoughtText].count++;
+      });
 
-    function showThought() {
+      // Convert sums/counts to average numbers
+      for (const thought in averageRatings) {
+        const entry = averageRatings[thought];
+        entry.avg = (entry.sum / entry.count).toFixed(2);
+      }
+
+      const dateCounts = {};
+      lines.slice(1).forEach(row => {
+        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        const timestamp = cols[0];
+        const thought = cols[1]?.trim().replace(/^"|"$/g, '');
+        if (!thought) return;
+
+        const date = new Date(timestamp);
+        if (isNaN(date)) return;
+
+        const key = date.toDateString();
+        if (!dateCounts[key]) dateCounts[key] = 0;
+        dateCounts[key]++;
+      });
+
+      recentDiv.innerHTML = Object.entries(dateCounts)
+        .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+        .map(([date, count]) => `${date} — ${count} ${count === 1 ? 'memory' : 'memories'}`)
+        .join('<br>');
+
+      shuffle(thoughts);
+
+      if (thoughts.length > 0) {
+        showThought();
+        button.disabled = false;
+        button.textContent = `Tell me a story\n(${thoughts.length} total)`;
+        button.addEventListener('click', showThought);
+      } else {
+        button.textContent = "No thoughts found";
+      }
+    } catch (error) {
+      console.error("Failed to load thoughts or ratings:", error);
+      button.textContent = "Error loading thoughts";
+    }
+  }
+
+  function showThought() {
+    if (isAnimating || thoughts.length === 0) return;
+    isAnimating = true;
+
+    const currentThought = thoughts[index];
+    thoughtBox.value = currentThought;
+    thoughtBox.style.height = 'auto';
+    thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+
+    updateStars(userRatings.get(currentThought));
+    updateRatingInfo(currentThought);
+
+    index = (index + 1) % thoughts.length;
+
+    setTimeout(() => {
+      isAnimating = false;
+    }, 300);
+  }
+
+  function updateStars(rating) {
+    stars.forEach(star => {
+      const starVal = parseInt(star.dataset.value);
+      if (rating && starVal <= rating) {
+        star.classList.add('filled');
+      } else {
+        star.classList.remove('filled');
+      }
+    });
+  }
+
+  function updateRatingInfo(thought) {
+    const userRating = userRatings.get(thought);
+    const avgData = averageRatings[thought];
+
+    let info = '';
+    if (userRating) {
+      info += `Your rating: ${userRating}`;
+    } else {
+      info += `You haven't rated this yet.`;
+    }
+    info += '\n';
+    if (avgData) {
+      info += `Average rating: ${avgData.avg} (${avgData.count} vote${avgData.count > 1 ? 's' : ''})`;
+    } else {
+      info += 'No ratings yet.';
+    }
+    ratingInfo.textContent = info;
+  }
+
+  // Submit rating to Google Form
+  function submitRating(thoughtText, ratingValue) {
+    if (!thoughtText || !ratingValue) return;
+
+    const url = `${formUrl}?${thoughtEntry}=${encodeURIComponent(thoughtText)}&${ratingEntry}=${encodeURIComponent(ratingValue)}`;
+
+    fetch(url, { method: 'POST', mode: 'no-cors' })
+      .then(() => {
+        console.log('Rating submitted:', ratingValue, 'for thought:', thoughtText);
+      })
+      .catch(err => {
+        console.error('Submit error:', err);
+      });
+  }
+
+  // Handle star click events
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
       if (isAnimating || thoughts.length === 0) return;
-      isAnimating = true;
+      const ratingValue = parseInt(star.dataset.value);
+      const currentThought = thoughts[(index + thoughts.length - 1) % thoughts.length]; // current shown thought
+      userRatings.set(currentThought, ratingValue);
+      updateStars(ratingValue);
+      updateRatingInfo(currentThought);
+      submitRating(currentThought, ratingValue);
+    });
 
-      const thought = thoughts[index];
-      thoughtBox.value = thought;
-      thoughtBox.style.height = 'auto';
-      thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+    star.addEventListener('mouseover', () => {
+      const hoverVal = parseInt(star.dataset.value);
+      stars.forEach(s => {
+        const val = parseInt(s.dataset.value);
+        s.classList.toggle('filled', val <= hoverVal);
+      });
+    });
 
-      // Show rating UI for this thought
-      ratingContainer.style.display = 'block';
-      renderStars(thought);
+    star.addEventListener('mouseout', () => {
+      updateStars(userRatings.get(thoughts[(index + thoughts.length - 1) % thoughts.length]));
+    });
+  });
 
-      index = (index + 1) % thoughts.length;
+  // RGB fade for the button
+  let hue = 0;
+  function updateButtonColor() {
+    hue = (hue + 2) % 360;
+    button.style.background = `hsl(${hue}, 100%, 50%)`;
+  }
+  setInterval(updateButtonColor, 60);
 
-      setTimeout(() => {
-        isAnimating = false;
-      }, 300);
-    }
-
-    // Calculate average rating for a thought
-    function getAverageRating(thought) {
-      const ratings = ratingsData.filter(r => r.thought === thought).map(r => r.rating);
-      if (ratings.length === 0) return 0;
-      const sum = ratings.reduce((a,b) => a + b, 0);
-      return sum / ratings.length;
-    }
-
-    // Track user rating locally in session
-    function setUserRating(thought, rating) {
-      yourRatings[thought] = rating;
-    }
-
-    function getUserRating(thought) {
-      return yourRatings[thought] || 0;
-    }
-
-    // Send rating to Google Form
-    async function submitRating(thought, rating) {
-      try {
-        const formData = new FormData();
-        formData.append(ENTRY_THOUGHT, thought);
-        formData.append(ENTRY_RATING, rating);
-
-        // Submit silently
-        await fetch(GOOGLE_FORM_ACTION, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: formData
-        });
-        // Optimistically update ratingsData
-        ratingsData.push({thought, rating});
-      } catch (error) {
-        console.error("Error submitting rating:", error);
-      }
-    }
-
-    // Render stars for current thought
-    function renderStars(thought) {
-      starsDiv.innerHTML = '';
-      const userRating = getUserRating(thought);
-      const avgRating = getAverageRating(thought);
-
-      for (let i=1; i<=5; i++) {
-        const star = document.createElement('span');
-        star.classList.add('star');
-        star.innerHTML = '★';
-        if (i <= userRating) star.classList.add('selected');
-
-        // Hover effect
-        star.addEventListener('mouseenter', () => {
-          for(let j=1;j<=5;j++) {
-            starsDiv.children[j-1].classList.toggle('hovered', j <= i);
-          }
-        });
-        star.addEventListener('mouseleave', () => {
-          for(let j=1;j<=5;j++) {
-            starsDiv.children[j-1].classList.remove('hovered');
-          }
-        });
-
-        // Click event: submit rating
-        star.addEventListener('click', () => {
-          if (userRating === i) return; // no change
-          setUserRating(thought, i);
-          submitRating(thought, i);
-          renderStars(thought);
-          updateRatingText(i, avgRating);
-        });
-
-        starsDiv.appendChild(star);
-      }
-
-      updateRatingText(userRating, avgRating);
-    }
-
-    // Update rating text below stars
-    function updateRatingText(userRating, avgRating) {
-      let userText = userRating ? `Your rating: ${userRating} star${userRating > 1 ? 's' : ''}` : "You haven't rated yet.";
-      let avgText = avgRating > 0 ? `Average rating: ${avgRating.toFixed(2)} ⭐` : "No ratings yet.";
-      ratingText.innerHTML = userText
+  loadThoughts();
+</script>
+</body>
+</html>
