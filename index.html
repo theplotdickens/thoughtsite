@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Brian's Thoughts</title>
@@ -12,118 +11,71 @@
       font-size: 1.25em;
       height: 100vh;
       overflow-y: auto;
-      position: relative;
       color: #fff;
       text-shadow: 1px 1px 2px #000;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
+    }button {
+  color: #fff;
+  border: none;
+  padding: 18px 36px;
+  font-size: 2em;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 12vh;
+  transition: background 0.5s;
+  background: rgb(255, 0, 0);
+  white-space: pre-line;
+}
 
-    button {
-      color: #fff;
-      border: none;
-      padding: 18px 36px;
-      font-size: 2em;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: "Garamond", serif;
-      margin-top: 12vh;
-      transition: background 0.5s;
-      background: rgb(255, 0, 0);
-      white-space: pre-line;
-    }
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
 
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
+button:hover:enabled {
+  filter: brightness(0.85);
+}
 
-    button:hover:enabled {
-      filter: brightness(0.85);
-    }
+#thoughtBox {
+  margin-top: 30px;
+  width: 85%;
+  max-width: 800px;
+  min-height: 140px;
+  font-size: 2.2em;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #000;
+  border: 1px solid #333;
+  border-radius: 10px;
+  resize: none;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
 
-    #thoughtBox {
-      margin-top: 30px;
-      width: 85%;
-      max-width: 800px;
-      min-height: 140px;
-      height: auto;
-      font-size: 2.2em;
-      padding: 24px;
-      background: rgba(255, 255, 255, 0.95);
-      color: #000;
-      border: 1px solid #333;
-      border-radius: 10px;
-      resize: none;
-      font-family: "Garamond", serif;
-      overflow: hidden;
-      transition: height 0.3s ease;
-    }
+.stars {
+  margin-top: 20px;
+  font-size: 2em;
+  color: gray;
+  cursor: pointer;
+}
 
-    #recentContainer {
-      margin-top: 40px;
-      padding: 10px;
-      max-width: 90%;
-      text-align: center;
-      font-size: 1em;
-      font-style: italic;
-      font-weight: bold;
-    }
+.stars span:hover,
+.stars span.hover,
+.stars span.selected {
+  color: gold;
+}
 
-    summary {
-      font-size: 1.2em;
-      cursor: pointer;
-      outline: none;
-      padding: 10px;
-      font-weight: bold;
-      list-style: none; /* remove default arrow */
-    }
-
-    summary::-webkit-details-marker {
-      display: none; /* remove arrow in WebKit browsers */
-    }
-
-    summary::before {
-      content: "+ ";
-      float: left;
-      margin-right: 8px;
-    }
-
-    summary::after {
-      content: " +";
-      float: right;
-      margin-left: 8px;
-    }
-
-    details[open] summary::before {
-      content: "+ ";
-    }
-
-    details[open] summary::after {
-      content: " +";
-    }
-
-    #recentUpdates {
-      padding-top: 10px;
-    }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
   <textarea id="thoughtBox" readonly></textarea>
-
-  <div id="recentContainer">
-    <details open>
-      <summary><strong><em>Recent Memory Additions</em></strong></summary>
-      <div id="recentUpdates"></div>
-    </details>
-  </div>
-
-  <script>
+  <div class="stars" id="starContainer" style="display: none;"></div>  <script>
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
-    const recentDiv = document.getElementById('recentUpdates');
+    const starContainer = document.getElementById('starContainer');
 
     let thoughts = [];
     let index = 0;
@@ -150,26 +102,6 @@
           })
           .filter(t => t.length > 0);
 
-        const dateCounts = {};
-        lines.slice(1).forEach(row => {
-          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          const timestamp = cols[0];
-          const thought = cols[1]?.trim().replace(/^"|"$/g, '');
-          if (!thought) return;
-
-          const date = new Date(timestamp);
-          if (isNaN(date)) return;
-
-          const key = date.toDateString();
-          if (!dateCounts[key]) dateCounts[key] = 0;
-          dateCounts[key]++;
-        });
-
-        recentDiv.innerHTML = Object.entries(dateCounts)
-          .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-          .map(([date, count]) => `${date} — ${count} ${count === 1 ? 'memory' : 'memories'}`)
-          .join('<br>');
-
         shuffle(thoughts);
 
         if (thoughts.length > 0) {
@@ -190,15 +122,67 @@
       if (isAnimating || thoughts.length === 0) return;
       isAnimating = true;
 
-      thoughtBox.value = thoughts[index];
+      const currentThought = thoughts[index];
+      thoughtBox.value = currentThought;
       thoughtBox.style.height = 'auto';
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
+      showStars(currentThought);
 
       index = (index + 1) % thoughts.length;
 
       setTimeout(() => {
         isAnimating = false;
       }, 300);
+    }
+
+    function showStars(thought) {
+      starContainer.innerHTML = '';
+      starContainer.style.display = 'flex';
+
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.innerHTML = '★';
+        star.dataset.rating = i;
+
+        star.addEventListener('mouseover', () => {
+          updateStarDisplay(i);
+        });
+
+        star.addEventListener('mouseout', () => {
+          updateStarDisplay(0);
+        });
+
+        star.addEventListener('click', () => {
+          submitRating(thought, i);
+        });
+
+        starContainer.appendChild(star);
+      }
+    }
+
+    function updateStarDisplay(rating) {
+      const stars = document.querySelectorAll('#starContainer span');
+      stars.forEach((star, idx) => {
+        star.className = (idx < rating) ? 'hover' : '';
+      });
+    }
+
+    function submitRating(thought, rating) {
+      const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6zH53irNMjr-U3n2SGgGjAgJPlwzUGr3JPifJcuNEAZi_A/formResponse';
+      const thoughtField = 'entry.494591548';  // Update with real ID
+      const ratingField = 'entry.83562580';    // Update with real ID
+
+      const formData = new FormData();
+      formData.append(thoughtField, thought);
+      formData.append(ratingField, rating);
+
+      fetch(formURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+      }).then(() => {
+        starContainer.style.display = 'none';
+      });
     }
 
     let hue = 0;
@@ -209,6 +193,5 @@
     setInterval(updateButtonColor, 60);
 
     loadThoughts();
-  </script>
-</body>
+  </script></body>
 </html>
