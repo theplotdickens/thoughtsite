@@ -92,6 +92,19 @@
       margin-top: 10px;
       white-space: pre-line;
     }
+
+    #autoNextToggle {
+      margin-top: 15px;
+      transform: scale(1.3);
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    label {
+      font-family: "Garamond", serif;
+      color: white;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -100,12 +113,17 @@
   <textarea id="thoughtBox" readonly rows="4"></textarea>
   <div class="stars" id="starContainer"></div>
   <div id="ratingInfo"></div>
+  <label>
+    <input type="checkbox" id="autoNextToggle" />
+    Auto-load next thought after rating
+  </label>
 
   <script>
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starContainer = document.getElementById('starContainer');
     const ratingInfo = document.getElementById('ratingInfo');
+    const autoNextToggle = document.getElementById('autoNextToggle');
 
     let thoughts = [];
     let index = 0;
@@ -183,6 +201,12 @@
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
           fetchAverage(thought);
+
+          // Auto-next toggle is ON
+          if (autoNextToggle.checked) {
+            setTimeout(showThought, 600);
+          }
+
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
