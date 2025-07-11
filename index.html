@@ -9,27 +9,30 @@
       background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
-      font-size: 1.1em;
+      font-size: 1.2em;
       height: 100vh;
       overflow-y: auto;
+      position: relative;
       color: #fff;
       text-shadow: 2px 2px 4px #000;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding-bottom: 80px;
     }
 
     button {
       color: #fff;
       border: none;
-      padding: 12px 24px;
+      padding: 14px 28px;
       font-size: 1.5em;
       border-radius: 8px;
       cursor: pointer;
       font-family: "Garamond", serif;
-      margin-top: 10vh;
+      margin-top: 8vh;
       transition: background 0.5s;
       background: rgb(255, 0, 0);
+      white-space: pre-line;
       animation: rgbFade 6s linear infinite;
     }
 
@@ -40,32 +43,42 @@
       100% {background-color: rgb(255,0,0);}
     }
 
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    button:hover:enabled {
+      filter: brightness(0.85);
+    }
+
     #instruction {
-      margin-top: 15px;
+      margin-top: 20px;
       font-size: 1.1em;
+      font-family: "Garamond", serif;
       text-align: center;
-      white-space: pre-line;
     }
 
     #thoughtBox {
-      margin-top: 20px;
+      margin-top: 30px;
       width: 85%;
       max-width: 800px;
-      font-size: 1.3em;
+      font-size: 1.2em;
       padding: 20px;
       background: rgba(255, 255, 255, 0.95);
       color: #000;
       border: 1px solid #333;
       border-radius: 10px;
       resize: none;
+      font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
-      font-family: "Garamond", serif;
     }
 
     .stars {
-      font-size: 2.2em;
-      margin-top: 15px;
+      font-size: 2em;
+      margin-top: 20px;
       user-select: none;
     }
 
@@ -80,21 +93,24 @@
       text-align: center;
       margin-top: 10px;
       white-space: pre-line;
-      text-shadow: 2px 2px 4px #000;
-    }
-
-    #autoLoadContainer {
-      margin-top: 10px;
-      font-size: 1em;
     }
 
     #recentContainer {
-      margin-top: 30px;
-      font-size: 0.9em;
+      margin-top: 50px;
       color: white;
-      text-shadow: 1px 1px 2px black;
-      text-align: center;
-      padding-bottom: 30px;
+      font-family: "Garamond", serif;
+      font-size: 1em;
+      text-align: left;
+    }
+
+    #recentContainer ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    #recentContainer li {
+      margin-bottom: 6px;
     }
   </style>
 </head>
@@ -104,27 +120,24 @@
     Click the button for a new story, and give it a rating.  
     One star for blah, five stars for wow.
   </div>
-  <div id="autoLoadContainer">
-    <label><input type="checkbox" id="autoLoadToggle" /> Auto-load next thought after rating</label>
-  </div>
   <textarea id="thoughtBox" readonly rows="4"></textarea>
   <div class="stars" id="starContainer"></div>
   <div id="ratingInfo"></div>
   <div id="recentContainer"></div>
 
   <script>
-    const ratingURL = "https://script.google.com/macros/s/AKfycbwoi0h4Q5Wm3U9H-a4LLs5v0D94ffRfvyvCnB7ZK-T8qofQvTXHzqSsd7WMfeoDdjCE/exec";
-
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starContainer = document.getElementById('starContainer');
     const ratingInfo = document.getElementById('ratingInfo');
-    const autoLoadToggle = document.getElementById('autoLoadToggle');
     const recentContainer = document.getElementById('recentContainer');
 
     let thoughts = [];
     let index = 0;
     let ratedThoughts = {};
+    let autoLoad = false;
+
+    const ratingURL = "https://script.google.com/macros/s/AKfycbyF8G27YxeewNDPZpDzqaLjGJTu04thmETcOk5nhTWi6p5XY10X-6OY44O0YHfpIjvH/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -138,10 +151,13 @@
         const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRfbKJAEihBz868fJEDh4iQjNLPemxy3UoTK71Ong-HohSmZsO0lc5n_N7LuxQpqWWQp_OODIpVgBZ7/pub?output=csv');
         const data = await response.text();
         const lines = data.trim().split(/\r?\n/);
-        thoughts = lines.slice(1).map(row => {
-          const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          return cols[1]?.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
-        }).filter(Boolean);
+        thoughts = lines.slice(1)
+          .map(row => {
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            let text = cols[1] || '';
+            return text.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+          })
+          .filter(t => t.length > 0);
 
         shuffle(thoughts);
 
@@ -153,8 +169,6 @@
         } else {
           button.textContent = "No thoughts found";
         }
-
-        loadRecentSummary();
       } catch (err) {
         console.error("Error loading thoughts:", err);
         button.textContent = "Error loading thoughts";
@@ -172,7 +186,8 @@
 
     function showStars(thought) {
       starContainer.innerHTML = '';
-      ratingInfo.textContent = 'You have not rated this yet';
+      ratingInfo.textContent = '(loading average...)';
+      fetchAverage(thought);
 
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
@@ -182,53 +197,45 @@
         star.addEventListener('click', () => submitRating(thought, i));
         starContainer.appendChild(star);
       }
-
-      fetchAverage(thought);
     }
 
-    function submitRating(thought, rating) {
+    async function submitRating(thought, rating) {
       if (ratedThoughts[thought]) return;
 
-      const cb = "cb_" + Math.random().toString(36).substring(2);
-      window[cb] = function (data) {
-        delete window[cb];
-        document.body.removeChild(script);
+      try {
+        const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
+        const res = await fetch(url);
 
-        if (data && data.status === "Success") {
+        if (res.ok) {
           ratedThoughts[thought] = rating;
-          renderStars(rating);
+          renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
-          if (autoLoadToggle.checked) setTimeout(showThought, 600);
+          if (autoLoad) setTimeout(showThought, 600);
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
-      };
-
-      const script = document.createElement('script');
-      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}&callback=${cb}`;
-      script.onerror = () => {
+      } catch (err) {
+        console.error("Rating submission failed:", err);
         ratingInfo.textContent = "Failed to submit rating.";
-        delete window[cb];
-        document.body.removeChild(script);
-      };
-      document.body.appendChild(script);
+      }
     }
 
-    function renderStars(rating) {
+    function renderStars(thought, userRating) {
       starContainer.innerHTML = '';
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
-        star.textContent = i <= rating ? '★' : '☆';
+        star.textContent = i <= userRating ? '★' : '☆';
         star.className = 'star';
         starContainer.appendChild(star);
       }
     }
 
     function fetchAverage(thought) {
-      const cb = "cb_" + Math.random().toString(36).substring(2);
-      window[cb] = function (data) {
-        delete window[cb];
+      const callback = `jsonpCallback_${Math.random().toString(36).substring(2)}`;
+      window[callback] = function (data) {
+        delete window[callback];
         document.body.removeChild(script);
+
         if (data && typeof data.average === "number") {
           ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
         } else {
@@ -237,11 +244,11 @@
       };
 
       const script = document.createElement('script');
-      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&callback=${cb}`;
+      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&callback=${callback}`;
       script.onerror = () => {
-        ratingInfo.textContent = "Failed to load average.";
-        delete window[cb];
+        delete window[callback];
         document.body.removeChild(script);
+        ratingInfo.textContent = "Failed to load average.";
       };
       document.body.appendChild(script);
     }
@@ -255,10 +262,17 @@
         if (data.summary) {
           const entries = Object.entries(data.summary)
             .filter(([_, count]) => count > 0)
-            .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-            .map(([day, count]) => `${day}: ${count} memories added`)
-            .join('\n');
-          recentContainer.textContent = entries;
+            .sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+          const list = document.createElement('ul');
+          entries.forEach(([day, count]) => {
+            const li = document.createElement('li');
+            li.textContent = `${day}: ${count} memories added`;
+            list.appendChild(li);
+          });
+
+          recentContainer.innerHTML = '';
+          recentContainer.appendChild(list);
         }
       };
 
@@ -271,16 +285,16 @@
       document.body.appendChild(script);
     }
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       if (e.key >= '1' && e.key <= '5') {
-        const currentThought = thoughtBox.value;
-        if (!ratedThoughts[currentThought]) {
-          submitRating(currentThought, parseInt(e.key));
-        }
+        const rating = parseInt(e.key);
+        const thought = thoughtBox.value;
+        submitRating(thought, rating);
       }
     });
 
     loadThoughts();
+    loadRecentSummary();
   </script>
 </body>
 </html>
