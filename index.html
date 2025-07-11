@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Brian's Thoughts</title>
   <style>
-    /* Your existing styles here, unchanged */
     body {
       background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
       background-size: cover;
@@ -132,8 +131,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    // Your deployed Apps Script URL here:
-    const ratingURL = "https://script.google.com/macros/s/AKfycbxBDFh2c1D-gZ1yrSbvYuiQMr_V_ufeYmIz_V3pX6XAtoqqxPqeAHmyIBp03RV8BWKw/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbzqTg2GYRzqdSOw2pAiTuWzgBcv-x41xVbJnTXd3yICE9WN4uQW1r_Yj05IR1Rwsl6C/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -193,14 +191,51 @@
       fetchAverage(thought);
     }
 
+    function jsonpFetch(url) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_cb_' + Math.random().toString(36).substr(2, 9);
+
+        window[callbackName] = (data) => {
+          resolve(data);
+          delete window[callbackName];
+          script.remove();
+        };
+
+        const script = document.createElement('script');
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        script.onerror = () => {
+          reject(new Error('JSONP request failed'));
+          delete window[callbackName];
+          script.remove();
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+
+    async function fetchAverage(thought) {
+      ratingInfo.textContent = "(loading average...)";
+      try {
+        const url = `${ratingURL}?thought=${encodeURIComponent(thought)}`;
+        const data = await jsonpFetch(url);
+
+        if (data.average != null) {
+          ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
+        } else {
+          ratingInfo.textContent = "No ratings yet";
+        }
+      } catch (err) {
+        ratingInfo.textContent = "Failed to load average.";
+        console.error(err);
+      }
+    }
+
     async function submitRating(thought, rating) {
       if (ratedThoughts[thought]) return;
 
       try {
         const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const data = JSON.parse(text);
+        const data = await jsonpFetch(url);
 
         if (data.status === "Success") {
           ratedThoughts[thought] = rating;
@@ -215,8 +250,8 @@
           ratingInfo.textContent = "Error submitting rating.";
         }
       } catch (err) {
-        console.error("Rating submission failed:", err);
         ratingInfo.textContent = "Failed to submit rating.";
+        console.error(err);
       }
     }
 
@@ -227,24 +262,6 @@
         star.textContent = i <= userRating ? '★' : '☆';
         star.className = 'star';
         starContainer.appendChild(star);
-      }
-    }
-
-    async function fetchAverage(thought) {
-      ratingInfo.textContent = "(loading average...)";
-      try {
-        const res = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
-        const text = await res.text();
-        const data = JSON.parse(text);
-
-        if (data.average != null) {
-          ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
-        } else {
-          ratingInfo.textContent = "No ratings yet";
-        }
-      } catch (err) {
-        ratingInfo.textContent = "Failed to load average.";
-        console.error("Failed to fetch average rating:", err);
       }
     }
 
