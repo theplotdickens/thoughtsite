@@ -111,7 +111,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbwS_pzfcAJZEnmkOv5y2-ICHTAyw_MqDTLkBZ9ZTKrBwzSX6wVGIOvtsc_VQoeckak/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbz6d9gThyVZXgsThiCxZZ0k-S5MUlwuc9lxcgr_CMZq1fy1Sca0_lCOrXmmwSUsAiez/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -160,8 +160,6 @@
 
     function showStars(thought) {
       starContainer.innerHTML = '';
-      ratingInfo.textContent = 'You have not rated this yet';
-
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
         star.textContent = '☆';
@@ -170,22 +168,21 @@
         star.addEventListener('click', () => submitRating(thought, i));
         starContainer.appendChild(star);
       }
+      fetchAverage(thought);
     }
 
     async function submitRating(thought, rating) {
       if (ratedThoughts[thought]) return;
 
       try {
-        // Use GET with query params to avoid CORS preflight issues
         const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
-
         const res = await fetch(url);
 
         if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
-          fetchAverage();
+          fetchAverage(thought);
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -205,13 +202,13 @@
       }
     }
 
-    async function fetchAverage() {
+    async function fetchAverage(thought) {
       ratingInfo.textContent = "(loading average...)";
       try {
-        const res = await fetch(ratingURL);
+        const res = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
         if (!res.ok) throw new Error("Network error");
         const data = await res.json();
-        if (data.average) {
+        if (data.average != null) {
           ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
         } else {
           ratingInfo.textContent = "No ratings yet";
@@ -222,7 +219,18 @@
       }
     }
 
-    loadThoughts().then(fetchAverage);
+    // Keyboard rating support
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      if (key >= '1' && key <= '5') {
+        const thought = thoughtBox.value;
+        if (!ratedThoughts[thought]) {
+          submitRating(thought, Number(key));
+        }
+      }
+    });
+
+    loadThoughts();
   </script>
 </body>
 </html>
