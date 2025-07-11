@@ -109,7 +109,7 @@
 
     let thoughts = [];
     let index = 0;
-    let ratedThoughts = {};  // <-- Make sure this is declared!
+    let ratedThoughts = {};
 
     const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec";
 
@@ -156,6 +156,7 @@
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
       index = (index + 1) % thoughts.length;
       showStars(thought);
+      fetchAverage();
     }
 
     function showStars(thought) {
@@ -186,6 +187,7 @@
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
+          fetchAverage();
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -202,6 +204,23 @@
         star.textContent = i <= userRating ? '★' : '☆';
         star.className = 'star';
         starContainer.appendChild(star);
+      }
+    }
+
+    async function fetchAverage() {
+      ratingInfo.textContent = "(loading average...)";
+      try {
+        const res = await fetch(ratingURL);
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        if (data.average) {
+          ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
+        } else {
+          ratingInfo.textContent = "No ratings yet";
+        }
+      } catch (err) {
+        ratingInfo.textContent = "Failed to load average.";
+        console.error("Failed to fetch average rating:", err);
       }
     }
 
