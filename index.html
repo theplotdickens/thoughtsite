@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Brian's Thoughts</title>
   <style>
+    /* Your existing styles here, unchanged */
     body {
       background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
       background-size: cover;
@@ -111,7 +112,6 @@
   <button id="thoughtBtn" disabled>Loading...</button>
   <div id="instruction">Click the button for a new story, and give it a rating</div>
 
-  <!-- ✅ Auto-load toggle now placed right here -->
   <label>
     <input type="checkbox" id="autoNextToggle" />
     Auto-load next thought after rating
@@ -132,7 +132,8 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbyF8G27YxeewNDPZpDzqaLjGJTu04thmETcOk5nhTWi6p5XY10X-6OY44O0YHfpIjvH/exec";
+    // Your deployed Apps Script URL here:
+    const ratingURL = "https://script.google.com/macros/s/AKfycbxBDFh2c1D-gZ1yrSbvYuiQMr_V_ufeYmIz_V3pX6XAtoqqxPqeAHmyIBp03RV8BWKw/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -198,14 +199,15 @@
       try {
         const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
         const res = await fetch(url);
+        const text = await res.text();
+        const data = JSON.parse(text);
 
-        if (res.ok) {
+        if (data.status === "Success") {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
           fetchAverage(thought);
 
-          // ✅ Auto-load if toggle is checked
           if (autoNextToggle.checked) {
             setTimeout(showThought, 600);
           }
@@ -232,8 +234,9 @@
       ratingInfo.textContent = "(loading average...)";
       try {
         const res = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
-        if (!res.ok) throw new Error("Network error");
-        const data = await res.json();
+        const text = await res.text();
+        const data = JSON.parse(text);
+
         if (data.average != null) {
           ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
         } else {
@@ -245,7 +248,7 @@
       }
     }
 
-    // ✅ Keyboard rating support
+    // Keyboard rating support
     document.addEventListener('keydown', (e) => {
       const key = e.key;
       if (key >= '1' && key <= '5') {
