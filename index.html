@@ -9,7 +9,7 @@
       background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
-      font-size: 1.2em;
+      font-size: 1.25em;
       height: 100vh;
       overflow-y: auto;
       position: relative;
@@ -18,21 +18,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 80px;
     }
 
     button {
       color: #fff;
       border: none;
-      padding: 14px 28px;
-      font-size: 1.5em;
+      padding: 18px 36px;
+      font-size: 2em;
       border-radius: 8px;
       cursor: pointer;
       font-family: "Garamond", serif;
-      margin-top: 8vh;
+      margin-top: 12vh;
       transition: background 0.5s;
       background: rgb(255, 0, 0);
-      white-space: pre-line;
       animation: rgbFade 6s linear infinite;
     }
 
@@ -43,48 +41,38 @@
       100% {background-color: rgb(255,0,0);}
     }
 
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-      animation: none;
-    }
-
-    button:hover:enabled {
-      filter: brightness(0.85);
-    }
-
     #instruction {
       margin-top: 20px;
-      font-size: 1.1em;
-      font-family: "Garamond", serif;
+      font-size: 1.2em;
       text-align: center;
+      white-space: pre-line;
     }
 
     #thoughtBox {
       margin-top: 30px;
       width: 85%;
       max-width: 800px;
-      font-size: 1.2em;
-      padding: 20px;
+      font-size: 1.6em;
+      padding: 24px;
       background: rgba(255, 255, 255, 0.95);
       color: #000;
       border: 1px solid #333;
       border-radius: 10px;
       resize: none;
-      font-family: "Garamond", serif;
       overflow: hidden;
       transition: height 0.3s ease;
+      font-family: "Garamond", serif;
     }
 
     .stars {
-      font-size: 2em;
+      font-size: 2.5em;
       margin-top: 20px;
       user-select: none;
     }
 
     .star {
       cursor: pointer;
-      padding: 0 8px;
+      padding: 0 10px;
     }
 
     #ratingInfo {
@@ -93,24 +81,16 @@
       text-align: center;
       margin-top: 10px;
       white-space: pre-line;
+      text-shadow: 2px 2px 4px #000;
     }
 
-    #recentContainer {
-      margin-top: 50px;
-      color: white;
-      font-family: "Garamond", serif;
+    #autoLoadContainer {
+      margin-top: 10px;
       font-size: 1em;
-      text-align: left;
     }
 
-    #recentContainer ul {
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-
-    #recentContainer li {
-      margin-bottom: 6px;
+    #autoLoadToggle {
+      margin-left: 5px;
     }
   </style>
 </head>
@@ -120,24 +100,24 @@
     Click the button for a new story, and give it a rating.  
     One star for blah, five stars for wow.
   </div>
+  <div id="autoLoadContainer">
+    <label><input type="checkbox" id="autoLoadToggle" /> Auto-load next thought after rating</label>
+  </div>
   <textarea id="thoughtBox" readonly rows="4"></textarea>
   <div class="stars" id="starContainer"></div>
   <div id="ratingInfo"></div>
-  <div id="recentContainer"></div>
 
   <script>
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starContainer = document.getElementById('starContainer');
     const ratingInfo = document.getElementById('ratingInfo');
-    const recentContainer = document.getElementById('recentContainer');
+    const autoLoadToggle = document.getElementById('autoLoadToggle');
 
     let thoughts = [];
     let index = 0;
     let ratedThoughts = {};
-    let autoLoad = false;
-
-    const ratingURL = "https://script.google.com/macros/s/AKfycbyF8G27YxeewNDPZpDzqaLjGJTu04thmETcOk5nhTWi6p5XY10X-6OY44O0YHfpIjvH/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbwKjCvZfDQCtVFqH454l5RX-jut26FCx1wNuaBOTFGx5b341rjli8X1ZD2PLukZXjSw/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -186,8 +166,7 @@
 
     function showStars(thought) {
       starContainer.innerHTML = '';
-      ratingInfo.textContent = '(loading average...)';
-      fetchAverage(thought);
+      ratingInfo.textContent = 'You have not rated this yet';
 
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
@@ -197,30 +176,41 @@
         star.addEventListener('click', () => submitRating(thought, i));
         starContainer.appendChild(star);
       }
+
+      fetchAverage(thought);
     }
 
-    async function submitRating(thought, rating) {
+    function submitRating(thought, rating) {
       if (ratedThoughts[thought]) return;
 
-      try {
-        const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
-        const res = await fetch(url);
+      const callbackName = "jsonpCallback_" + Math.random().toString(36).substr(2, 10);
+      window[callbackName] = function (data) {
+        delete window[callbackName];
+        document.body.removeChild(script);
 
-        if (res.ok) {
+        if (data && data.status === "Success") {
           ratedThoughts[thought] = rating;
-          renderStars(thought, rating);
+          renderStars(rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
-          if (autoLoad) setTimeout(showThought, 600);
+          if (autoLoadToggle.checked) {
+            setTimeout(showThought, 600);
+          }
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
-      } catch (err) {
-        console.error("Rating submission failed:", err);
+      };
+
+      const script = document.createElement('script');
+      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}&callback=${callbackName}`;
+      script.onerror = () => {
         ratingInfo.textContent = "Failed to submit rating.";
-      }
+        delete window[callbackName];
+        document.body.removeChild(script);
+      };
+      document.body.appendChild(script);
     }
 
-    function renderStars(thought, userRating) {
+    function renderStars(userRating) {
       starContainer.innerHTML = '';
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
@@ -231,12 +221,12 @@
     }
 
     function fetchAverage(thought) {
-      const callback = `jsonpCallback_${Math.random().toString(36).substring(2)}`;
-      window[callback] = function (data) {
-        delete window[callback];
+      const callbackName = "jsonpCallback_" + Math.random().toString(36).substr(2, 10);
+      window[callbackName] = function (data) {
+        delete window[callbackName];
         document.body.removeChild(script);
 
-        if (data && typeof data.average === "number") {
+        if (data && typeof data.average === 'number') {
           ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
         } else {
           ratingInfo.textContent = "No ratings yet";
@@ -244,57 +234,25 @@
       };
 
       const script = document.createElement('script');
-      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&callback=${callback}`;
+      script.src = `${ratingURL}?thought=${encodeURIComponent(thought)}&callback=${callbackName}`;
       script.onerror = () => {
-        delete window[callback];
-        document.body.removeChild(script);
         ratingInfo.textContent = "Failed to load average.";
-      };
-      document.body.appendChild(script);
-    }
-
-    function loadRecentSummary() {
-      const cb = "cb_" + Math.random().toString(36).substring(2);
-      window[cb] = function (data) {
-        delete window[cb];
-        document.body.removeChild(script);
-
-        if (data.summary) {
-          const entries = Object.entries(data.summary)
-            .filter(([_, count]) => count > 0)
-            .sort((a, b) => new Date(b[0]) - new Date(a[0]));
-
-          const list = document.createElement('ul');
-          entries.forEach(([day, count]) => {
-            const li = document.createElement('li');
-            li.textContent = `${day}: ${count} memories added`;
-            list.appendChild(li);
-          });
-
-          recentContainer.innerHTML = '';
-          recentContainer.appendChild(list);
-        }
-      };
-
-      const script = document.createElement('script');
-      script.src = `${ratingURL}?callback=${cb}`;
-      script.onerror = () => {
-        delete window[cb];
+        delete window[callbackName];
         document.body.removeChild(script);
       };
       document.body.appendChild(script);
     }
 
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keydown', (e) => {
       if (e.key >= '1' && e.key <= '5') {
-        const rating = parseInt(e.key);
-        const thought = thoughtBox.value;
-        submitRating(thought, rating);
+        const currentThought = thoughtBox.value;
+        if (!ratedThoughts[currentThought]) {
+          submitRating(currentThought, parseInt(e.key));
+        }
       }
     });
 
     loadThoughts();
-    loadRecentSummary();
   </script>
 </body>
 </html>
