@@ -40,7 +40,7 @@
     @keyframes rgbFade {
       0% {background-color: rgb(255,0,0);}
       33% {background-color: rgb(0,255,0);}
-      66% {background-color: rgb(0,0,255);}
+      66% {background-color rgb(0,0,255);}
       100% {background-color: rgb(255,0,0);}
     }
 
@@ -75,8 +75,9 @@
       margin-top: 30px;
       width: 85%;
       max-width: 800px;
-      font-size: 1.3em;
-      padding: 24px;
+      font-size: 1.15em;          /* slightly smaller font */
+      line-height: 1.4;           /* better line spacing */
+      padding: 32px 36px;         /* more padding */
       background: rgba(255, 255, 255, 0.95);
       color: #000;
       border: 1px solid #333;
@@ -132,7 +133,7 @@
 
   <label>
     <input type="checkbox" id="autoNextToggle" />
-    Auto-load next thought after rating?
+    Auto-load next thought after rating
   </label>
 
   <textarea id="thoughtBox" readonly rows="4"></textarea>
@@ -150,7 +151,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbxkzsMQs7Uk7ssGjGvJ8OPlnH3L-93ylsBbKljPSUD8QpYg98_0ohDAnwAYkeJ6oWgx/exec";
+    const ratingURL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
