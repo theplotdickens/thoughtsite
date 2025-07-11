@@ -5,7 +5,7 @@
   <title>Brian's Thoughts</title>
   <style>
     body {
-      background: 
+      background:
         linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
         url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
       background-size: cover;
@@ -15,8 +15,8 @@
       height: 100vh;
       overflow-y: auto;
       position: relative;
-      color: #000; /* changed text color to black for better contrast */
-      text-shadow: none;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -58,7 +58,8 @@
       margin-top: 20px;
       font-size: 1.2em;
       font-family: "Garamond", serif;
-      color: #000;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
       white-space: pre-line;
       text-align: center;
       max-width: 600px;
@@ -99,10 +100,11 @@
 
     #ratingInfo {
       font-family: "Garamond", serif;
-      color: black;
+      color: white;
       text-align: center;
       margin-top: 10px;
       white-space: pre-line;
+      text-shadow: 1px 1px 2px #000;
     }
 
     #autoNextToggle {
@@ -114,13 +116,15 @@
 
     label {
       font-family: "Garamond", serif;
-      color: black;
+      color: white;
+      text-shadow: 1px 1px 2px #000;
       margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
+
   <div id="instruction">
     Click the button for a new story, and give it a rating.
     <span class="second-line">One star for blah, five stars for wow.</span>
@@ -136,7 +140,6 @@
   <div id="ratingInfo"></div>
 
   <script>
-    // Your existing JavaScript here unchanged
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starContainer = document.getElementById('starContainer');
@@ -147,7 +150,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbxCt_1NOA8Z5odGK7rhAWYEwNFXlhAoBx8LxCWcHQaCQuXdKkl1bFcZPx7ky4diX39t/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -281,7 +284,6 @@
       }
     }
 
-    // Keyboard rating support
     document.addEventListener('keydown', (e) => {
       const key = e.key;
       if (key >= '1' && key <= '5') {
