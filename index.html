@@ -30,6 +30,7 @@
       font-family: "Garamond", serif;
       margin-top: 12vh;
       transition: background 0.5s;
+      background: rgb(255, 0, 0);
       white-space: pre-line;
       animation: rgbFade 6s linear infinite;
     }
@@ -54,6 +55,7 @@
     #instruction {
       margin-top: 20px;
       font-size: 1.2em;
+      font-family: "Garamond", serif;
     }
 
     #thoughtBox {
@@ -107,7 +109,7 @@
 
     let thoughts = [];
     let index = 0;
-    let ratedThoughts = {};
+    let ratedThoughts = {};  // <-- Make sure this is declared!
 
     const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec";
 
