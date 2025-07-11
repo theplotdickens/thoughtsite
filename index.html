@@ -169,7 +169,9 @@
           .map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             let text = cols[1] || '';
-            return text.trim().replace(/^"|"$/g, '');
+            return text.trim()
+              .replace(/^"|"$/g, '')   // remove starting/ending quotes
+              .replace(/""/g, '"');    // replace double double-quotes with single
           })
           .filter(t => t.length > 0);
 
@@ -190,8 +192,8 @@
     }
 
     function autoExpandTextarea(textarea) {
-      textarea.style.height = 'auto';  // Reset height
-      textarea.style.height = textarea.scrollHeight + 'px';  // Set to scrollHeight
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
     }
 
     function showThought() {
