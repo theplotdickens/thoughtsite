@@ -186,7 +186,6 @@
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
-          fetchAverage();
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -206,24 +205,7 @@
       }
     }
 
-    async function fetchAverage() {
-      ratingInfo.textContent = "(loading average...)";
-      try {
-        const res = await fetch(ratingURL);
-        if (!res.ok) throw new Error("Network error");
-        const data = await res.json();
-        if (data.average) {
-          ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
-        } else {
-          ratingInfo.textContent = "No ratings yet";
-        }
-      } catch (err) {
-        ratingInfo.textContent = "Failed to load average.";
-        console.error("Failed to fetch average rating:", err);
-      }
-    }
-
-    loadThoughts().then(fetchAverage);
+    loadThoughts();
   </script>
 </body>
 </html>
