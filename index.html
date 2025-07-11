@@ -5,7 +5,9 @@
   <title>Brian's Thoughts</title>
   <style>
     body {
-      background: url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
+      background: 
+        linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
+        url('https://raw.githubusercontent.com/theplotdickens/thoughtsite/main/file_000000004bd861f7a2f5899b2a2cb104.png') no-repeat center center fixed;
       background-size: cover;
       font-family: "Garamond", serif;
       margin: 0;
@@ -13,8 +15,8 @@
       height: 100vh;
       overflow-y: auto;
       position: relative;
-      color: #fff;
-      text-shadow: 1px 1px 2px #000;
+      color: #000; /* changed text color to black for better contrast */
+      text-shadow: none;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -56,6 +58,16 @@
       margin-top: 20px;
       font-size: 1.2em;
       font-family: "Garamond", serif;
+      color: #000;
+      white-space: pre-line;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    #instruction .second-line {
+      text-indent: 1.5em;
+      display: block;
+      margin-top: 6px;
     }
 
     #thoughtBox {
@@ -87,7 +99,7 @@
 
     #ratingInfo {
       font-family: "Garamond", serif;
-      color: white;
+      color: black;
       text-align: center;
       margin-top: 10px;
       white-space: pre-line;
@@ -102,18 +114,21 @@
 
     label {
       font-family: "Garamond", serif;
-      color: white;
+      color: black;
       margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
-  <div id="instruction">Click the button for a new story, and give it a rating. One star for blah, five stars for wow.</div>
+  <div id="instruction">
+    Click the button for a new story, and give it a rating.
+    <span class="second-line">One star for blah, five stars for wow.</span>
+  </div>
 
   <label>
     <input type="checkbox" id="autoNextToggle" />
-    Auto-load next story after rating?
+    Auto-load next thought after rating
   </label>
 
   <textarea id="thoughtBox" readonly rows="4"></textarea>
@@ -121,6 +136,7 @@
   <div id="ratingInfo"></div>
 
   <script>
+    // Your existing JavaScript here unchanged
     const button = document.getElementById('thoughtBtn');
     const thoughtBox = document.getElementById('thoughtBox');
     const starContainer = document.getElementById('starContainer');
@@ -131,7 +147,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbzqTg2GYRzqdSOw2pAiTuWzgBcv-x41xVbJnTXd3yICE9WN4uQW1r_Yj05IR1Rwsl6C/exec";
+    const ratingURL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
