@@ -94,7 +94,7 @@
     }
 
     #autoNextToggle {
-      margin-top: 15px;
+      margin-top: 8px;
       transform: scale(1.3);
       margin-right: 8px;
       cursor: pointer;
@@ -103,20 +103,23 @@
     label {
       font-family: "Garamond", serif;
       color: white;
-      margin-top: 20px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <button id="thoughtBtn" disabled>Loading...</button>
   <div id="instruction">Click the button for a new story, and give it a rating</div>
-  <textarea id="thoughtBox" readonly rows="4"></textarea>
-  <div class="stars" id="starContainer"></div>
-  <div id="ratingInfo"></div>
+
+  <!-- ✅ Auto-load toggle now placed right here -->
   <label>
     <input type="checkbox" id="autoNextToggle" />
     Auto-load next thought after rating
   </label>
+
+  <textarea id="thoughtBox" readonly rows="4"></textarea>
+  <div class="stars" id="starContainer"></div>
+  <div id="ratingInfo"></div>
 
   <script>
     const button = document.getElementById('thoughtBtn');
@@ -129,7 +132,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbz6d9gThyVZXgsThiCxZZ0k-S5MUlwuc9lxcgr_CMZq1fy1Sca0_lCOrXmmwSUsAiez/exec";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -202,11 +205,10 @@
           ratingInfo.textContent = `You rated this: ${rating}/5`;
           fetchAverage(thought);
 
-          // Auto-next toggle is ON
+          // ✅ Auto-load if toggle is checked
           if (autoNextToggle.checked) {
             setTimeout(showThought, 600);
           }
-
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -243,7 +245,7 @@
       }
     }
 
-    // Keyboard rating support
+    // ✅ Keyboard rating support
     document.addEventListener('keydown', (e) => {
       const key = e.key;
       if (key >= '1' && key <= '5') {
