@@ -32,11 +32,20 @@
       transition: background 0.5s;
       background: rgb(255, 0, 0);
       white-space: pre-line;
+      animation: rgbFade 6s linear infinite;
+    }
+
+    @keyframes rgbFade {
+      0% {background-color: rgb(255,0,0);}
+      33% {background-color: rgb(0,255,0);}
+      66% {background-color: rgb(0,0,255);}
+      100% {background-color: rgb(255,0,0);}
     }
 
     button:disabled {
       background: #555;
       cursor: not-allowed;
+      animation: none;
     }
 
     button:hover:enabled {
@@ -102,8 +111,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec";
-";
+    const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec";
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -168,20 +176,17 @@
       if (ratedThoughts[thought]) return;
 
       try {
-        const formData = new URLSearchParams();
-        formData.append('thought', thought);
-        formData.append('rating', rating);
-
         const res = await fetch(ratingURL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString()
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ thought, rating })
         });
 
         if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
           ratingInfo.textContent = `You rated this: ${rating}/5`;
+          fetchAverage();
         } else {
           ratingInfo.textContent = "Error submitting rating.";
         }
@@ -201,7 +206,24 @@
       }
     }
 
-    loadThoughts();
+    async function fetchAverage() {
+      ratingInfo.textContent = "(loading average...)";
+      try {
+        const res = await fetch(ratingURL);
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        if (data.average) {
+          ratingInfo.textContent = `Average rating: ${data.average.toFixed(2)}/5`;
+        } else {
+          ratingInfo.textContent = "No ratings yet";
+        }
+      } catch (err) {
+        ratingInfo.textContent = "Failed to load average.";
+        console.error("Failed to fetch average rating:", err);
+      }
+    }
+
+    loadThoughts().then(fetchAverage);
   </script>
 </body>
 </html>
