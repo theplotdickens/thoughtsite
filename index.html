@@ -156,7 +156,6 @@
       thoughtBox.style.height = thoughtBox.scrollHeight + 'px';
       index = (index + 1) % thoughts.length;
       showStars(thought);
-      fetchAverage();
     }
 
     function showStars(thought) {
@@ -177,11 +176,10 @@
       if (ratedThoughts[thought]) return;
 
       try {
-        const res = await fetch(ratingURL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ thought, rating })
-        });
+        // Use GET with query params to avoid CORS preflight issues
+        const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
+
+        const res = await fetch(url);
 
         if (res.ok) {
           ratedThoughts[thought] = rating;
@@ -224,7 +222,7 @@
       }
     }
 
-    loadThoughts();
+    loadThoughts().then(fetchAverage);
   </script>
 </body>
 </html>
