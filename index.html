@@ -109,7 +109,7 @@
     let index = 0;
     let ratedThoughts = {};
 
-    const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec"; // your working URL here
+    const ratingURL = "https://script.google.com/macros/s/AKfycbxonXcENb3tpoNxDVLXmjFiZaCTRdsvl3rs6B4F67tCVZXti7Fc9coVJl5xxiilrHHg/exec"; // Working URL
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -172,12 +172,8 @@
       if (ratedThoughts[thought]) return;
 
       try {
-        const res = await fetch(ratingURL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ thought, rating })
-        });
-
+        const url = `${ratingURL}?thought=${encodeURIComponent(thought)}&rating=${rating}`;
+        const res = await fetch(url);
         if (res.ok) {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
