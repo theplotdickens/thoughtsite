@@ -29,16 +29,10 @@
       cursor: pointer;
       font-family: "Garamond", serif;
       margin-top: 12vh;
-      background: rgb(255, 0, 0);
+      transition: background 0.5s;
       white-space: pre-line;
-      animation: fadeRGB 10s infinite;
-    }
-
-    @keyframes fadeRGB {
-      0% { background: rgb(255, 0, 0); }
-      33% { background: rgb(0, 255, 0); }
-      66% { background: rgb(0, 0, 255); }
-      100% { background: rgb(255, 0, 0); }
+      animation: rgbCycle 10s linear infinite;
+      background: rgb(255, 0, 0);
     }
 
     button:disabled {
@@ -49,6 +43,13 @@
 
     button:hover:enabled {
       filter: brightness(0.85);
+    }
+
+    @keyframes rgbCycle {
+      0% { background: rgb(255, 0, 0); }
+      33% { background: rgb(0, 255, 0); }
+      66% { background: rgb(0, 0, 255); }
+      100% { background: rgb(255, 0, 0); }
     }
 
     #instruction {
@@ -160,12 +161,7 @@
 
     function showStars(thought) {
       starContainer.innerHTML = '';
-      ratingInfo.textContent = 'You have not rated this yet\n(loading average...)';
-
-      if (ratedThoughts[thought]) {
-        renderStars(thought, ratedThoughts[thought]);
-        return;
-      }
+      ratingInfo.textContent = 'You have not rated this yet';
 
       for (let i = 1; i <= 5; i++) {
         const star = document.createElement('span');
@@ -177,25 +173,18 @@
       }
     }
 
-    function renderStars(thought, userRating) {
-      starContainer.innerHTML = '';
-      for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('span');
-        star.textContent = i <= userRating ? '★' : '☆';
-        star.className = 'star';
-        starContainer.appendChild(star);
-      }
-    }
-
     async function fetchAverage(thought) {
       try {
         const response = await fetch(`${ratingURL}?thought=${encodeURIComponent(thought)}`);
         const result = await response.json();
-        if (result.average) {
+        if (result.average !== undefined) {
           ratingInfo.textContent += `\nAverage rating: ${result.average.toFixed(2)}/5`;
+        } else {
+          ratingInfo.textContent += "\n(Average unavailable)";
         }
       } catch (err) {
         console.error('Failed to fetch average rating:', err);
+        ratingInfo.textContent += "\n(Average unavailable)";
       }
     }
 
@@ -205,27 +194,35 @@
       try {
         const res = await fetch(ratingURL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ thought, rating })
         });
 
         const result = await res.json();
 
-        if (res.ok && result.success) {
+        if (res.ok && result.status === 'success') {
           ratedThoughts[thought] = rating;
           renderStars(thought, rating);
-          ratingInfo.textContent = `You rated this: ${rating}/5`;
           fetchAverage(thought);
         } else {
-          ratingInfo.textContent = "Error submitting rating: " + (result.error || "Unknown error");
+          ratingInfo.textContent = "Error submitting rating.";
+          console.error("Server error:", result);
         }
       } catch (err) {
         console.error("Rating submission failed:", err);
         ratingInfo.textContent = "Failed to submit rating.";
       }
+    }
+
+    function renderStars(thought, userRating) {
+      starContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = i <= userRating ? '★' : '☆';
+        star.className = 'star';
+        starContainer.appendChild(star);
+      }
+      ratingInfo.textContent = `You rated this: ${userRating}/5`;
     }
 
     loadThoughts();
